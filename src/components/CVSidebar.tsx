@@ -1,6 +1,6 @@
 
 import React from "react";
-import { FileText, FileCheck, Plus, Home, Settings } from "lucide-react";
+import { FileText, FileCheck, Plus, Home, Settings, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 
@@ -26,9 +26,27 @@ const CVSidebar: React.FC<CVSidebarProps> = ({ className }) => {
               <a
                 href="#"
                 className="flex items-center rounded-md px-3 py-2 text-sm font-medium bg-secondary/50"
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigate("/");
+                }}
               >
                 <Home className="h-5 w-5 mr-3" />
                 Inicio
+              </a>
+            </li>
+            
+            <li>
+              <a
+                href="#"
+                className="flex items-center rounded-md px-3 py-2 text-sm font-medium hover:bg-secondary/50 transition-colors"
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigate("/profile");
+                }}
+              >
+                <User className="h-5 w-5 mr-3" />
+                Mi Perfil
               </a>
             </li>
             

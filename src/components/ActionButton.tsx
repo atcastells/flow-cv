@@ -7,6 +7,7 @@ interface ActionButtonProps {
   onClick: () => void;
   variant?: "primary" | "secondary";
   className?: string;
+  icon?: React.ReactNode;
 }
 
 const ActionButton: React.FC<ActionButtonProps> = ({
@@ -14,6 +15,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({
   onClick,
   variant = "primary",
   className,
+  icon,
 }) => {
   return (
     <button
@@ -27,6 +29,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({
         className
       )}
     >
+      {icon && <span className="mr-1.5">{icon}</span>}
       {label}
     </button>
   );

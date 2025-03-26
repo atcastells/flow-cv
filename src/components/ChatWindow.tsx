@@ -1,8 +1,10 @@
-
 import React, { useEffect, useRef, useState } from "react";
 import ChatMessage, { ChatMessageProps } from "./ChatMessage";
 import InputArea from "./InputArea";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { FileText } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface ChatWindowProps {
   className?: string;
@@ -10,6 +12,7 @@ interface ChatWindowProps {
 }
 
 const ChatWindow: React.FC<ChatWindowProps> = ({ className, onOpenModal }) => {
+  const navigate = useNavigate();
   const [messages, setMessages] = useState<ChatMessageProps[]>([
     {
       content: "¡Hola! Soy tu asistente para crear tu CV. ¿Qué te gustaría hacer hoy?",
@@ -48,13 +51,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ className, onOpenModal }) => {
     
     setMessages((prev) => [...prev, userMessage]);
     
-    // Simulate AI "thinking"
     setIsTyping(true);
     
     setTimeout(() => {
       setIsTyping(false);
       
-      // Check message content for keywords and provide contextual response
       let responseActions = [];
       
       if (content.toLowerCase().includes("experiencia")) {
@@ -131,6 +132,17 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ className, onOpenModal }) => {
 
   return (
     <div className={cn("flex h-full flex-col", className)}>
+      <div className="flex items-center justify-end p-2 border-b">
+        <Button 
+          variant="outline" 
+          size="sm"
+          className="gap-2"
+          onClick={() => navigate("/preview")}
+        >
+          <FileText size={16} />
+          Previsualizar CV
+        </Button>
+      </div>
       <div className="flex-1 overflow-y-auto px-4 py-4">
         <div className="mx-auto max-w-3xl">
           {messages.map((message, index) => (

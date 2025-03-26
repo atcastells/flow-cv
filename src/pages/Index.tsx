@@ -42,6 +42,34 @@ const Index = () => {
     handleCloseModal();
   };
 
+  const handleProfileSubmit = (data: any) => {
+    console.log("Profile submitted:", data);
+    toast.success("Perfil actualizado correctamente");
+    handleCloseModal();
+  };
+
+  const handleProjectsSubmit = (projects: any[]) => {
+    console.log("Projects submitted:", projects);
+    toast.success("Proyectos añadidos correctamente");
+    handleCloseModal();
+  };
+
+  const handleAwardsSubmit = (awards: any[]) => {
+    console.log("Awards submitted:", awards);
+    toast.success("Premios añadidos correctamente");
+    handleCloseModal();
+  };
+
+  const handleFileUpload = (file: File) => {
+    console.log("File uploaded:", file);
+    toast.success("CV subido correctamente. Procesando información...");
+    // Aquí iría la lógica para procesar el archivo
+    setTimeout(() => {
+      toast.success("Información extraída con éxito");
+      handleCloseModal();
+    }, 2000);
+  };
+
   return (
     <div className="flex h-screen flex-col overflow-hidden">
       <Header onToggleSidebar={toggleSidebar} />
@@ -96,7 +124,7 @@ const Index = () => {
       
       {/* Modals */}
       <Modal
-        isOpen={activeModal === "experience"}
+        isOpen={activeModal === "work"}
         onClose={handleCloseModal}
         title="Añadir experiencia laboral"
       >
@@ -152,6 +180,276 @@ const Index = () => {
               className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
             >
               Guardar
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={activeModal === "profile"}
+        onClose={handleCloseModal}
+        title="Añadir información de perfil"
+      >
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium">Nombre completo</label>
+              <input
+                type="text"
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                placeholder="Tu nombre"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="block text-sm font-medium">Título profesional</label>
+              <input
+                type="text"
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                placeholder="Ej. Desarrollador Web"
+              />
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium">Correo electrónico</label>
+              <input
+                type="email"
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                placeholder="tu@email.com"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="block text-sm font-medium">Teléfono</label>
+              <input
+                type="tel"
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                placeholder="+34 123 456 789"
+              />
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium">Ubicación</label>
+              <input
+                type="text"
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                placeholder="Ciudad, País"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="block text-sm font-medium">Sitio web</label>
+              <input
+                type="url"
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                placeholder="https://tusitio.com"
+              />
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <label className="block text-sm font-medium">Resumen profesional</label>
+            <textarea
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              rows={4}
+              placeholder="Breve descripción de tu perfil profesional..."
+            ></textarea>
+          </div>
+          
+          <div className="flex justify-end gap-3 pt-2">
+            <button
+              type="button"
+              onClick={handleCloseModal}
+              className="rounded-md px-4 py-2 text-sm font-medium hover:bg-secondary transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={() => handleProfileSubmit({
+                name: "Ana García",
+                title: "Desarrolladora Web",
+                email: "ana@example.com"
+              })}
+              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+            >
+              Guardar
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={activeModal === "projects"}
+        onClose={handleCloseModal}
+        title="Añadir proyectos"
+      >
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <label className="block text-sm font-medium">Nombre del proyecto</label>
+            <input
+              type="text"
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              placeholder="Nombre del proyecto"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <label className="block text-sm font-medium">Descripción</label>
+            <textarea
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              rows={3}
+              placeholder="Descripción del proyecto..."
+            ></textarea>
+          </div>
+          
+          <div className="space-y-2">
+            <label className="block text-sm font-medium">Tecnologías utilizadas</label>
+            <input
+              type="text"
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              placeholder="Ej. React, Node.js, MongoDB"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <label className="block text-sm font-medium">Enlace</label>
+            <input
+              type="url"
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              placeholder="https://proyecto.com"
+            />
+          </div>
+          
+          <div className="flex justify-end gap-3 pt-2">
+            <button
+              type="button"
+              onClick={handleCloseModal}
+              className="rounded-md px-4 py-2 text-sm font-medium hover:bg-secondary transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={() => handleProjectsSubmit([{
+                name: "Proyecto Web",
+                description: "Aplicación de ejemplo",
+                technologies: "React, Node.js",
+                link: "https://ejemplo.com"
+              }])}
+              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+            >
+              Guardar
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={activeModal === "awards"}
+        onClose={handleCloseModal}
+        title="Añadir premios y reconocimientos"
+      >
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <label className="block text-sm font-medium">Título del premio</label>
+            <input
+              type="text"
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              placeholder="Nombre del premio o reconocimiento"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <label className="block text-sm font-medium">Otorgado por</label>
+            <input
+              type="text"
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              placeholder="Institución que otorgó el premio"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <label className="block text-sm font-medium">Fecha</label>
+            <input
+              type="date"
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <label className="block text-sm font-medium">Descripción</label>
+            <textarea
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              rows={3}
+              placeholder="Descripción del premio o reconocimiento..."
+            ></textarea>
+          </div>
+          
+          <div className="flex justify-end gap-3 pt-2">
+            <button
+              type="button"
+              onClick={handleCloseModal}
+              className="rounded-md px-4 py-2 text-sm font-medium hover:bg-secondary transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={() => handleAwardsSubmit([{
+                title: "Premio a la Innovación",
+                issuer: "Asociación de Desarrolladores",
+                date: "2023-05-15",
+                description: "Reconocimiento por proyecto innovador"
+              }])}
+              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+            >
+              Guardar
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={activeModal === "upload"}
+        onClose={handleCloseModal}
+        title="Adjuntar CV existente"
+      >
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <label className="block text-sm font-medium">
+              Selecciona tu CV
+            </label>
+            <p className="text-sm text-muted-foreground">
+              Acepto formatos PDF, DOCX y TXT. Extraeré automáticamente la información para crear tu nuevo CV.
+            </p>
+            <div className="flex items-center justify-center w-full">
+              <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-background hover:bg-secondary/30 transition-colors">
+                <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                  <svg className="w-8 h-8 mb-3 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                  </svg>
+                  <p className="mb-2 text-sm text-muted-foreground">
+                    <span className="font-semibold">Haz clic para seleccionar</span> o arrastra y suelta
+                  </p>
+                  <p className="text-xs text-muted-foreground">PDF, DOCX, TXT (MAX. 10MB)</p>
+                </div>
+                <input type="file" className="hidden" accept=".pdf,.docx,.doc,.txt" />
+              </label>
+            </div>
+          </div>
+          
+          <div className="flex justify-end gap-3 pt-2">
+            <button
+              type="button"
+              onClick={handleCloseModal}
+              className="rounded-md px-4 py-2 text-sm font-medium hover:bg-secondary transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={() => handleFileUpload(new File([], "ejemplo-cv.pdf"))}
+              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+            >
+              Subir y procesar
             </button>
           </div>
         </div>

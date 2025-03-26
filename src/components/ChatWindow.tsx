@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from "react";
 import ChatMessage, { ChatMessageProps } from "./ChatMessage";
 import InputArea from "./InputArea";
@@ -15,20 +16,36 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ className, onOpenModal }) => {
   const navigate = useNavigate();
   const [messages, setMessages] = useState<ChatMessageProps[]>([
     {
-      content: "¡Hola! Soy tu asistente para crear tu CV. ¿Qué te gustaría hacer hoy?",
+      content: "¡Hola! Soy tu asistente para crear tu CV. Puedo ayudarte a añadir información en las siguientes secciones. También puedes adjuntar un CV existente para extraer automáticamente esta información.",
       isUser: false,
       actions: [
         { 
-          label: "Añadir experiencia", 
-          action: () => onOpenModal("experience") 
+          label: "Añadir Perfil", 
+          action: () => onOpenModal("profile") 
         },
         { 
-          label: "Añadir educación", 
+          label: "Añadir Educación", 
           action: () => onOpenModal("education") 
         },
         { 
-          label: "Añadir habilidades", 
+          label: "Añadir Experiencia", 
+          action: () => onOpenModal("work") 
+        },
+        { 
+          label: "Añadir Habilidades", 
           action: () => onOpenModal("skills") 
+        },
+        { 
+          label: "Añadir Proyectos", 
+          action: () => onOpenModal("projects") 
+        },
+        { 
+          label: "Añadir Premios", 
+          action: () => onOpenModal("awards") 
+        },
+        { 
+          label: "Adjuntar CV existente", 
+          action: () => onOpenModal("upload") 
         }
       ],
       timestamp: new Date(),
@@ -58,40 +75,85 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ className, onOpenModal }) => {
       
       let responseActions = [];
       
-      if (content.toLowerCase().includes("experiencia")) {
+      if (content.toLowerCase().includes("perfil")) {
         responseActions = [
           { 
-            label: "Añadir experiencia", 
-            action: () => onOpenModal("experience") 
+            label: "Añadir Perfil", 
+            action: () => onOpenModal("profile") 
           }
         ];
       } else if (content.toLowerCase().includes("educación") || content.toLowerCase().includes("formación")) {
         responseActions = [
           { 
-            label: "Añadir educación", 
+            label: "Añadir Educación", 
             action: () => onOpenModal("education") 
+          }
+        ];
+      } else if (content.toLowerCase().includes("experiencia") || content.toLowerCase().includes("trabajo")) {
+        responseActions = [
+          { 
+            label: "Añadir Experiencia", 
+            action: () => onOpenModal("work") 
           }
         ];
       } else if (content.toLowerCase().includes("habilidad")) {
         responseActions = [
           { 
-            label: "Añadir habilidades", 
+            label: "Añadir Habilidades", 
             action: () => onOpenModal("skills") 
+          }
+        ];
+      } else if (content.toLowerCase().includes("proyecto")) {
+        responseActions = [
+          { 
+            label: "Añadir Proyectos", 
+            action: () => onOpenModal("projects") 
+          }
+        ];
+      } else if (content.toLowerCase().includes("premio") || content.toLowerCase().includes("reconocimiento")) {
+        responseActions = [
+          { 
+            label: "Añadir Premios", 
+            action: () => onOpenModal("awards") 
+          }
+        ];
+      } else if (content.toLowerCase().includes("adjuntar") || content.toLowerCase().includes("subir") || 
+                content.toLowerCase().includes("existente")) {
+        responseActions = [
+          { 
+            label: "Adjuntar CV existente", 
+            action: () => onOpenModal("upload") 
           }
         ];
       } else {
         responseActions = [
           { 
-            label: "Añadir experiencia", 
-            action: () => onOpenModal("experience") 
+            label: "Añadir Perfil", 
+            action: () => onOpenModal("profile") 
           },
           { 
-            label: "Añadir educación", 
+            label: "Añadir Educación", 
             action: () => onOpenModal("education") 
           },
           { 
-            label: "Añadir habilidades", 
+            label: "Añadir Experiencia", 
+            action: () => onOpenModal("work") 
+          },
+          { 
+            label: "Añadir Habilidades", 
             action: () => onOpenModal("skills") 
+          },
+          { 
+            label: "Añadir Proyectos", 
+            action: () => onOpenModal("projects") 
+          },
+          { 
+            label: "Añadir Premios", 
+            action: () => onOpenModal("awards") 
+          },
+          { 
+            label: "Adjuntar CV existente", 
+            action: () => onOpenModal("upload") 
           }
         ];
       }
@@ -111,16 +173,24 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ className, onOpenModal }) => {
   const getResponseForMessage = (message: string): string => {
     message = message.toLowerCase();
     
-    if (message.includes("experiencia")) {
-      return "Puedes añadir tu experiencia laboral con el botón a continuación. Incluye el nombre de la empresa, tu puesto, fechas y una breve descripción de tus responsabilidades.";
+    if (message.includes("perfil")) {
+      return "Puedes añadir información de tu perfil con el botón a continuación. Incluye tu nombre, título profesional, datos de contacto y un resumen profesional.";
     } else if (message.includes("educación") || message.includes("formación")) {
       return "La sección de educación es importante. Añade tus estudios, institución, fechas y logros relevantes usando el botón de abajo.";
+    } else if (message.includes("experiencia") || message.includes("trabajo")) {
+      return "Tu experiencia laboral es fundamental en un CV. Añade las empresas donde has trabajado, tu cargo, fechas y responsabilidades principales.";
     } else if (message.includes("habilidad")) {
-      return "Excelente. Las habilidades son fundamentales en un CV. ¿Qué habilidades técnicas o blandas te gustaría destacar?";
+      return "Las habilidades son esenciales en un CV. ¿Qué competencias técnicas o blandas te gustaría destacar?";
+    } else if (message.includes("proyecto")) {
+      return "Los proyectos destacados ayudan a demostrar tu experiencia práctica. Incluye nombre, descripción, tecnologías utilizadas y enlaces si están disponibles.";
+    } else if (message.includes("premio") || message.includes("reconocimiento")) {
+      return "Los premios y reconocimientos destacan tus logros. Incluye el título, la institución que lo otorgó, la fecha y una breve descripción.";
+    } else if (message.includes("adjuntar") || message.includes("subir") || message.includes("existente")) {
+      return "Puedes adjuntar un CV existente y extraeré automáticamente la información para ahorrar tiempo. Acepto formatos PDF, DOCX y TXT.";
     } else if (message.includes("hola") || message.includes("ayuda")) {
-      return "¡Bienvenido! Estoy aquí para ayudarte a crear tu CV. Puedes añadir diferentes secciones como experiencia laboral, educación o habilidades.";
+      return "¡Bienvenido! Estoy aquí para ayudarte a crear tu CV. Puedes añadir diferentes secciones como perfil, educación, experiencia laboral, habilidades, proyectos o premios. También puedes adjuntar un CV existente para extraer la información automáticamente.";
     } else {
-      return "Entiendo. Para continuar creando tu CV, puedes añadir información sobre tu experiencia laboral, educación o habilidades. ¿Qué te gustaría añadir primero?";
+      return "Entiendo. Para continuar creando tu CV, puedes añadir información en las diferentes secciones o adjuntar un CV existente para extraer los datos automáticamente. ¿Qué te gustaría hacer primero?";
     }
   };
 

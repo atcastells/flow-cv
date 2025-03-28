@@ -11,16 +11,16 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ className, onToggleSidebar }) => {
   return (
     <header className={cn(
-      "sticky top-0 z-10 border-b bg-card/80 backdrop-blur-sm shadow-sm",
+      "w-full border-b bg-card/80 backdrop-blur-sm shadow-sm",
       className
     )}>
-      <div className="mx-auto max-w-7xl px-4 py-4 flex items-center justify-between">
+      <div className="w-full px-4 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button 
             onClick={onToggleSidebar}
             className="p-2 rounded-md hover:bg-secondary transition-colors"
           >
-            <Menu size={20} />
+            <Menu className="flex md:hidden" size={20} />
           </button>
           <h1 className="text-xl font-medium">CV Conversacional</h1>
         </div>

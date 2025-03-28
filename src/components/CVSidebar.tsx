@@ -1,108 +1,83 @@
-
 import React from "react";
 import { FileText, FileCheck, Plus, Home, Settings, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 
+
 interface CVSidebarProps {
   className?: string;
+  isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
-const CVSidebar: React.FC<CVSidebarProps> = ({ className }) => {
+const CVSidebar: React.FC<CVSidebarProps> = ({ className, isCollapsed = false, onToggleCollapse }) => {
   const navigate = useNavigate();
-  
-  // Ejemplo de CVs completados (en una aplicación real, estos vendrían de una base de datos)
-  const savedCVs = [
-    { id: "1", name: "CV Desarrollador Frontend", lastUpdated: "2023-08-15" },
-    { id: "2", name: "CV Diseñador UX/UI", lastUpdated: "2023-09-22" }
-  ];
 
   return (
-    <div className={cn("flex flex-col h-full", className)}>
-      <div className="flex-1 overflow-auto py-2">
-        <nav>
-          <ul className="space-y-2 px-2">
-            <li>
-              <a
-                href="#"
-                className="flex items-center rounded-md px-3 py-2 text-sm font-medium bg-secondary/50"
-                onClick={(e) => {
-                  e.preventDefault();
-                  navigate("/");
-                }}
-              >
-                <Home className="h-5 w-5 mr-3" />
-                Inicio
-              </a>
-            </li>
-            
-            <li>
-              <a
-                href="#"
-                className="flex items-center rounded-md px-3 py-2 text-sm font-medium hover:bg-secondary/50 transition-colors"
-                onClick={(e) => {
-                  e.preventDefault();
-                  navigate("/profile");
-                }}
-              >
-                <User className="h-5 w-5 mr-3" />
-                Mi Perfil
-              </a>
-            </li>
-            
-            {/* Sección de CVs Guardados */}
-            <li className="pt-4">
-              <div className="px-3 mb-2">
-                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Mis CVs
-                </h3>
-              </div>
-              
-              <ul className="space-y-1">
-                {savedCVs.map((cv) => (
-                  <li key={cv.id}>
-                    <a
-                      href="#"
-                      className="flex items-center justify-between rounded-md px-3 py-2 text-sm hover:bg-secondary/50 transition-colors"
-                    >
-                      <div className="flex items-center">
-                        <FileCheck className="h-4 w-4 mr-3 text-primary" />
-                        <span className="truncate">{cv.name}</span>
-                      </div>
-                      <span className="text-xs text-muted-foreground">
-                        {new Date(cv.lastUpdated).toLocaleDateString()}
-                      </span>
-                    </a>
-                  </li>
-                ))}
-                
-                <li>
-                  <button 
-                    className="w-full flex items-center rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-secondary/50 transition-colors"
-                    onClick={() => navigate("/preview")}
-                  >
-                    <FileText className="h-4 w-4 mr-3" />
-                    <span>CV Actual</span>
-                  </button>
-                </li>
-                
-                <li>
-                  <button className="w-full flex items-center rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-secondary/50 transition-colors">
-                    <Plus className="h-4 w-4 mr-3" />
-                    <span>Crear Nuevo CV</span>
-                  </button>
-                </li>
-              </ul>
-            </li>
-          </ul>
-        </nav>
+    <div className={cn(
+      "flex flex-col h-screen transition-all duration-300",
+      isCollapsed ? "-translate-x-full md:translate-x-0 md:w-16" : "translate-x-0 w-64",
+      "fixed md:sticky", // Fixed on mobile, sticky on desktop
+      "top-0 left-0", // Align to top-left corner
+      "bg-background",
+      "border-r z-30",
+      className
+    )}>
+      <button
+        onClick={onToggleCollapse}
+        className={cn(
+          "absolute right-0 top-4 -mr-3 flex h-6 w-6 items-center justify-center rounded-full bg-background border shadow-md hover:bg-secondary transition-colors",
+          isCollapsed ? "hidden md:flex" : ""
+        )}
+        aria-label={isCollapsed ? "Expandir menú" : "Colapsar menú"}
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          className={cn("h-4 w-4 transition-transform", isCollapsed ? "rotate-180" : "")}
+        >
+          <path
+            fillRule="evenodd"
+            d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
+            clipRule="evenodd"
+          />
+        </svg>
+      </button>
+      <div className={cn("flex-1 overflow-auto py-2 transition-all duration-300", isCollapsed ? "" : "opacity-100 px-2")}>
+        <div>
+          <nav>
+            <button
+              className="w-full flex items-center rounded-md px-3 py-2 text-sm font-medium bg-secondary/50"
+              onClick={() => navigate("/")}
+            >
+              <Home className="h-5 w-5 mr-3" />
+              <span className={
+                cn("transition-colors", isCollapsed ? "hidden" : "")
+              }>Inicio</span>
+            </button>
+            <button
+              className="w-full flex items-center rounded-md px-3 py-2 text-sm font-medium hover:bg-secondary/50 transition-colors"
+              onClick={() => navigate("/profile")}
+            >
+              <User className="h-5 w-5 mr-3" />
+              <span className={
+                cn("transition-colors", isCollapsed ? "hidden" : "")
+              }>Mi Perfil</span>
+            </button>
+          </nav>
+        </div>
       </div>
-      
+
       {/* Footer con configuración */}
-      <div className="border-t py-2 px-2">
-        <button className="w-full flex items-center rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-secondary/50 transition-colors">
-          <Settings className="h-4 w-4 mr-3" />
-          <span>Ajustes</span>
+      <div className="border-t py-2">
+        <button
+          className="w-full flex items-center rounded-md px-3 py-2 text-sm font-medium hover:bg-secondary/50 transition-colors"
+        >
+          <Settings className="h-5 w-5 mr-3" />
+          <span className={
+            cn("transition-colors", isCollapsed ? "hidden" : "")
+          }>Ajustes</span>
         </button>
       </div>
     </div>

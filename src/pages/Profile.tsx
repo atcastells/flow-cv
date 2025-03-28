@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,35 +8,23 @@ import { Textarea } from "@/components/ui/textarea";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { ArrowLeft, Save } from "lucide-react";
+import { useProfileStore } from "@/features/store";
+
 
 const Profile = () => {
   const navigate = useNavigate();
   
-  // Estado para los datos del perfil
-  const [profile, setProfile] = useState({
-    personalData: {
-      name: "Ana García Martínez",
-      email: "ana.garcia@example.com",
-      phone: "+34 612 345 678",
-      address: "Madrid, España",
-      summary: "Desarrolladora Full Stack con más de 5 años de experiencia creando aplicaciones web modernas y escalables."
-    }
-  });
+  // Usar el store de Zustand para los datos del perfil
+  const { personalData, updatePersonalData } = useProfileStore();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setProfile(prev => ({
-      ...prev,
-      personalData: {
-        ...prev.personalData,
-        [name]: value
-      }
-    }));
+    updatePersonalData(name as keyof typeof personalData, value);
   };
 
   const handleSaveProfile = () => {
-    // Aquí se guardarían los datos en una base de datos o localStorage
-    console.log("Perfil guardado:", profile);
+    // Los datos ya están guardados en el store persistente
+    console.log("Perfil guardado:", personalData);
     toast.success("Perfil actualizado correctamente");
   };
 
@@ -68,7 +56,7 @@ const Profile = () => {
                   <Input
                     id="name"
                     name="name"
-                    value={profile.personalData.name}
+                    value={personalData.name}
                     onChange={handleInputChange}
                   />
                 </div>
@@ -78,7 +66,7 @@ const Profile = () => {
                     id="email"
                     name="email"
                     type="email"
-                    value={profile.personalData.email}
+                    value={personalData.email}
                     onChange={handleInputChange}
                   />
                 </div>
@@ -90,7 +78,7 @@ const Profile = () => {
                   <Input
                     id="phone"
                     name="phone"
-                    value={profile.personalData.phone}
+                    value={personalData.phone}
                     onChange={handleInputChange}
                   />
                 </div>
@@ -99,7 +87,7 @@ const Profile = () => {
                   <Input
                     id="address"
                     name="address"
-                    value={profile.personalData.address}
+                    value={personalData.address}
                     onChange={handleInputChange}
                   />
                 </div>
@@ -111,7 +99,7 @@ const Profile = () => {
                   id="summary"
                   name="summary"
                   rows={4}
-                  value={profile.personalData.summary}
+                  value={personalData.summary}
                   onChange={handleInputChange}
                   placeholder="Breve descripción sobre ti y tu experiencia profesional"
                 />

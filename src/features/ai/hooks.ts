@@ -1,118 +1,59 @@
-import { useState, useCallback, useMemo, useEffect } from 'react';
-import React from 'react';
-// Adjust paths as needed for your project structure
-import { useToast } from '@/hooks/use-toast'; 
-import { OpenRouterService } from './service'; 
-import type { Message, ChatCompletionRequest, ChatCompletionResponseMessage, ToolCall } from './service'; // Ensure types include tool fields
-import { useSystemPrompt } from './prompts/useSystemPrompt'; 
-import { useProfileStore } from '../store/profileStore';
+import { useState, useCallback, useMemo } from 'react'; // Removed useEffect
+// Adjust paths as needed
+import { useToast } from '@/hooks/use-toast';
+import { OpenRouterService } from './service';
+// Import the updated types, including ContentPart
+import type { Message, ChatCompletionRequest, ChatCompletionResponseMessage, ToolCall } from './service'; // Removed ContentPart if unused directly here
+import { useSystemPrompt } from './prompts/useSystemPrompt';
+import { useChatStore } from '../store/chatStore'; // Import the Zustand store
+import { useSkillsStore } from '../store/skillsStore'; // Import the skills store
 
-// Personal information type definition
-export interface PersonalInfo {
-  full_name?: string;
-  email?: string;
-  phone?: string;
-  location?: string;
-  links?: string[];
-}
-
-// New hook to manage personal information
-export function usePersonalInfo() {
-  const { personalData, updatePersonalData, setPersonalData } = useProfileStore();
-  
-  // Map the store data to our PersonalInfo format
-  const personalInfo: PersonalInfo = {
-    full_name: personalData.name,
-    email: personalData.email,
-    phone: personalData.phone,
-    location: personalData.address,
-    // Note: links and summary are not directly mapped
-  };
-
-  // Update personal information through the store
-  const updatePersonalInfo = useCallback((newInfo: Partial<PersonalInfo>) => {
-    // Handle each field that has a mapping
-    if (newInfo.full_name !== undefined) {
-      updatePersonalData('name', newInfo.full_name);
-    }
-    if (newInfo.email !== undefined) {
-      updatePersonalData('email', newInfo.email);
-    }
-    if (newInfo.phone !== undefined) {
-      updatePersonalData('phone', newInfo.phone);
-    }
-    if (newInfo.location !== undefined) {
-      updatePersonalData('address', newInfo.location);
-    }
-    
-    return true;
-  }, [updatePersonalData]);
-
-  return {
-    personalInfo,
-    updatePersonalInfo
-  };
-}
-
-// Create a context to share personal info state across components
-export const PersonalInfoContext = React.createContext<ReturnType<typeof usePersonalInfo> | null>(null);
-
+import { savePersonalInfoTool } from './tools/savePersonalInfoTool'; // Import the extracted tool
 // --- Tool Implementation Placeholders ---
-// In a real app, these would likely call your backend API
-async function save_personal_info(args: { 
-  full_name?: string; 
-  email?: string; 
-  phone?: string; 
-  location?: string; 
-  links?: string[]; 
-}, updateFn?: (info: Partial<PersonalInfo>) => boolean): Promise<object> {
-  console.log("--- Executing Tool: save_personal_info ---");
-  console.log("Arguments:", args);
-  
-  // If updateFn is provided (from the hook), use it to update personal info
-  if (updateFn) {
-    try {
-      updateFn(args);
-      return { 
-        status: "success", 
-        message: "Personal information has been saved successfully.", 
-        updated_fields: Object.keys(args) 
-      };
-    } catch (error) {
-      return { 
-        status: "error", 
-        message: "Failed to update personal information.", 
-        error: error instanceof Error ? error.message : String(error) 
-      };
-    }
-  }
-  
-  // Fallback for when updateFn is not available
-  await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
-  return { status: "success", message: "Personal info processed.", received_args: args }; 
-}
+// (Keep the availableTools map and placeholder functions as before)
 
-// Add other tool functions here if needed
+async function save_skills(args: { skills: string[] }): Promise<object> {
+  console.log("--- Executing Tool: save_skills ---");
+  console.log("Arguments:", args);
+  try {
+    if (!Array.isArray(args.skills)) {
+      throw new Error('Invalid arguments: skills must be an array.');
+    }
+    // Get the action from the store
+    const { setSkills } = useSkillsStore.getState();
+    // Update the store
+    setSkills(args.skills);
+    return { status: "success", message: "Skills saved successfully." };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error saving skills';
+    console.error("Error executing tool save_skills:", errorMessage);
+    return { status: "error", message: errorMessage };
+  }
+}
 const availableTools: { [key: string]: (args: any) => Promise<object> } = {
-  save_personal_info: save_personal_info,
-  // e.g., save_work_experience: async (args) => { ... }, 
+  save_personal_info: savePersonalInfoTool, // Use the imported tool function
+  save_skills: save_skills, // Add the new skills tool
 };
 
 // --- Hook Implementation ---
 
 interface UseChatOptions {
   apiKey: string;
-  model?: string; // Make model optional if service handles a default
+  model?: string;
 }
 
 export function useChat({ apiKey, model }: UseChatOptions) {
-  const [messages, setMessages] = useState<Message[]>([]);
+  // --- Zustand Store Integration ---
+  const messages = useChatStore((state) => state.messages);
+  const addMessage = useChatStore((state) => state.addMessage);
+  const addMessages = useChatStore((state) => state.addMessages);
+  const clearStoreMessages = useChatStore((state) => state.clearMessages);
+  // --- End Zustand Store Integration ---
+
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const { systemPromptString, toolDefinitions } = useSystemPrompt();
-  const { personalInfo, updatePersonalInfo } = usePersonalInfo();
 
-  // Memoize service initialization
   const service = useMemo(() => {
       const effectiveModel = model || 'google/gemini-flash-1.5';
       if (!apiKey || !effectiveModel) return null;
@@ -120,93 +61,66 @@ export function useChat({ apiKey, model }: UseChatOptions) {
       return new OpenRouterService(apiKey, effectiveModel);
   }, [apiKey, model]);
 
-  // Recursive function to handle conversation turns, including tool calls
+  // processChatTurn now uses store actions
   const processChatTurn = useCallback(async (messagesForApi: Message[]) => {
+    // Get store actions directly - ensures latest functions are used if store reinitializes (unlikely here)
+    const { addMessage: _addMessage, addMessages: _addMessages } = useChatStore.getState();
+
     if (!service || !systemPromptString) {
-        const errorMsg = !service ? 'Chat service not initialized (check API key/model).' : 'System prompt not loaded.';
-        console.error("processChatTurn error:", errorMsg);
-        toast({ title: 'Error', description: errorMsg, variant: 'destructive' });
-        setIsLoading(false);
+        toast({ title: 'Error', description: 'Chat service not initialized.', variant: 'destructive' });
+        setIsLoading(false); // Ensure loading is off
         return;
     }
-    
     if(!isLoading) setIsLoading(true);
 
     try {
       const request: ChatCompletionRequest = {
         messages: [
-          { role: 'system', content: systemPromptString }, 
+          { role: 'system', content: systemPromptString },
           ...messagesForApi
         ],
         ...(toolDefinitions && toolDefinitions.length > 0 && {
             tools: toolDefinitions,
-            tool_choice: "auto" 
+            tool_choice: "auto"
         })
       };
-      
-      const response = await service.createChatCompletion(request);    
 
-      if (!response.choices?.[0]?.message) {
-        throw new Error('Invalid API response: missing message structure');
-      }
+      const response = await service.createChatCompletion(request);
+
+      if (!response.choices?.[0]?.message) { throw new Error('Invalid API response: missing message structure'); }
 
       const assistantMessage = response.choices[0].message as ChatCompletionResponseMessage;
+      if (!assistantMessage.role) assistantMessage.role = 'assistant';
 
-      if (!assistantMessage.role) assistantMessage.role = 'assistant'; 
-      
-      let messageIncludingToolCalls: Message | null = null;
-      setMessages(prev => {
-          messageIncludingToolCalls = assistantMessage;
-          return [...prev, assistantMessage];
-      });
-      
+      // Add assistant message (potentially with text and/or tool_calls) to store
+      _addMessage(assistantMessage); // Use store action
+
+      // --- Handle Tool Calls ---
       if (assistantMessage.tool_calls && assistantMessage.tool_calls.length > 0) {
          console.log("Handling tool calls:", assistantMessage.tool_calls);
-        
-        const toolResultsPromises = assistantMessage.tool_calls.map(async (toolCall: ToolCall) => {
-          if (toolCall.type !== 'function') {
-             console.warn(`Unsupported tool call type: ${toolCall.type}`);
-             return null;
-          }
 
+        const toolResultsPromises = assistantMessage.tool_calls.map(async (toolCall: ToolCall) => {
+          // ... (logic for parsing args, finding function, executing, handling errors - same as before) ...
           const functionName = toolCall.function.name;
           const functionToCall = availableTools[functionName];
           let functionResultContent: string;
           let functionArguments = {};
 
           try {
-            if (toolCall.function.arguments) {
-              functionArguments = JSON.parse(toolCall.function.arguments);
-            } else {
-              console.warn(`Tool call ${functionName} received no arguments.`);
-            }
-            
-            if (functionToCall) {
-              console.log(`Executing tool: ${functionName} with args:`, functionArguments);
-              
-              let result;
-              if (functionName === 'save_personal_info') {
-                result = await save_personal_info(functionArguments, updatePersonalInfo);
-              } else {
-                result = await functionToCall(functionArguments);
+             if (toolCall.function.arguments) {
+                 functionArguments = JSON.parse(toolCall.function.arguments);
               }
-              
+             if (functionToCall) {
+              const result = await functionToCall(functionArguments);
               functionResultContent = JSON.stringify(result);
-              console.log(`Tool ${functionName} result:`, functionResultContent);
-            } else {
-              throw new Error(`Unknown tool function requested: ${functionName}`);
-            }
+            } else { throw new Error(`Unknown tool function: ${functionName}`); }
           } catch (toolError) {
-            const errorMessage = toolError instanceof Error ? toolError.message : 'Unknown tool execution error';
-            console.error(`Error executing tool ${functionName}:`, errorMessage);
-            toast({
-              title: `Tool Error: ${functionName}`,
-              description: errorMessage,
-              variant: 'destructive',
-            });
-            functionResultContent = JSON.stringify({ error: errorMessage, arguments_received: functionArguments });
+             const errorMessage = toolError instanceof Error ? toolError.message : 'Unknown tool execution error';
+             console.error(`Error executing tool ${functionName}:`, errorMessage);
+             toast({ title: 'Tool Error', description: `Failed to execute tool ${functionName}: ${errorMessage}`, variant: 'destructive' });
+             functionResultContent = JSON.stringify({ error: errorMessage });
           }
-          
+
           return {
             role: 'tool',
             tool_call_id: toolCall.id,
@@ -218,70 +132,90 @@ export function useChat({ apiKey, model }: UseChatOptions) {
 
         if (resolvedToolResults.length > 0) {
            console.log("Adding tool results to messages:", resolvedToolResults);
-           setMessages(prev => [...prev, ...resolvedToolResults]);
-           await processChatTurn([...messagesForApi, assistantMessage, ...resolvedToolResults]); 
+           _addMessages(resolvedToolResults); // Use store action to add multiple
+           // Recursive call with updated history (fetch latest from store for accuracy)
+           const currentMessages = useChatStore.getState().messages; // Get latest state
+           await processChatTurn(currentMessages.slice(-20)); // Pass latest history slice
         } else {
-           console.error("No valid tool results obtained from tool calls.");
+           console.error("No valid tool results obtained.");
            toast({ title: 'Error', description: 'Failed to process tool requests.', variant: 'destructive'});
            setIsLoading(false);
         }
 
-      } else if (assistantMessage.content && typeof assistantMessage.content === 'string') {
-        console.log("Final assistant text response received.");
+      }
+      // --- Handle Regular Text Response or Response after Tool Calls ---
+      else if (assistantMessage.content !== null || response.choices[0].finish_reason === 'stop') {
+        console.log("Final assistant response received (or stop reason).");
         setIsLoading(false);
-      } else if (!assistantMessage.content && (!assistantMessage.tool_calls || assistantMessage.tool_calls.length === 0)) {
-         console.warn("Received empty or unexpected response from assistant (no content or tool_calls). Finish Reason:", response.choices[0]?.finish_reason);
-         toast({ title: 'Info', description: 'Assistant provided an empty response.', variant: 'default' });
-         setIsLoading(false);
-      } else {
-         console.error("Unhandled assistant message format:", assistantMessage);
+      }
+      // --- Handle Empty/Unexpected ---
+      else {
+         console.warn("Received unexpected assistant message format/finish reason:", assistantMessage, response.choices[0].finish_reason);
+         toast({ title: 'Info', description: 'Assistant provided an empty or unexpected response.', variant: 'default' });
          setIsLoading(false);
       }
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to process message';
       console.error("Error in processChatTurn:", errorMessage, error);
-      toast({
-        title: 'API Error',
-        description: errorMessage,
-        variant: 'destructive',
-      });
-      setIsLoading(false); 
-    } 
-  }, [service, systemPromptString, toolDefinitions, toast, isLoading, updatePersonalInfo]);
+      toast({ title: 'Chat Error', description: `Failed to get response: ${errorMessage}`, variant: 'destructive' });
+      setIsLoading(false);
+    }
+  }, [service, systemPromptString, toolDefinitions, toast, isLoading]); // Removed store actions from deps, using getState inside
 
+
+  // sendMessage now uses store actions
   const sendMessage = useCallback(
-    async (content: string) => {
-      const userMessage: Message = {
-        role: 'user',
-        content,
-      };
-      
-      let messagesToSend: Message[] | null = null;
-      setMessages(prev => {
-          messagesToSend = [...prev, userMessage];
-          return messagesToSend;
-      });
-      
-      if (messagesToSend) {
-         await processChatTurn(messagesToSend.slice(-20));
-      } else {
-         console.error("Failed to update messages before processing turn.");
-         toast({ title: 'Error', description: 'Could not send message due to state issue.', variant: 'destructive' });
+    async (message: Message) => {
+      // Get store actions directly
+      const { addMessage: _addMessage } = useChatStore.getState();
+      const currentMessages = useChatStore.getState().messages; // Get current messages from store
+
+      // --- Validations (keep these) ---
+      if (message.role !== 'user') { console.warn("Non-user message passed to sendMessage"); return; }
+      if (typeof message.content !== 'string' && !Array.isArray(message.content)) { /*...*/ return; }
+      if (Array.isArray(message.content) && message.content.length === 0) { /*...*/ return; }
+
+      // --- Revised Logic ---
+      // 1. Prepare history for the API call using current store state
+      const historyForAPI = [...currentMessages, message];
+      const limitedHistory = historyForAPI.slice(-20); // Apply context limit
+
+      // 2. Optimistically update the UI state via the store *now*
+      _addMessage(message); // Use store action
+
+      // 3. Initiate the backend processing with the prepared history
+      try {
+          await processChatTurn(limitedHistory);
+      } catch (error) {
+          // Handle errors initiating the call (processChatTurn has internal handling too)
+          console.error("Error initiating chat processing:", error);
+          toast({ title: 'Error', description: `Failed to send message: ${error instanceof Error ? error.message : 'Unknown error'}`, variant: 'destructive'});
+          // No explicit revert needed - store reflects the optimistic update. Error toast informs user.
+          setIsLoading(false); // Ensure loading is off if we bail here
       }
+      // --- End Revised Logic ---
     },
+    // Dependencies: processChatTurn relies on service, prompts etc. which are stable or memoized.
+    // toast is stable. We get store actions/state inside via getState.
     [processChatTurn, toast]
   );
 
+
+  // clearMessages now uses store action
   const clearMessages = useCallback(() => {
-    setMessages([]);
-  }, []);
+    // Get store action directly
+    const { clearMessages: _clearMessages } = useChatStore.getState();
+    _clearMessages();
+  }, []); // No dependencies needed as it calls getState
+
 
   return {
-    messages,
+    messages, // Return messages from the store selector
     isLoading,
     sendMessage,
-    clearMessages,
-    personalInfo,
+    clearMessages, // Return the refactored clearMessages
   };
 }
+
+// Remove conceptual example usage comment block as it's no longer relevant here

@@ -1,0 +1,247 @@
+project_brief:
+  introduction: |
+    In today's competitive job market, a well-crafted curriculum vitae (CV) is paramount.
+    A conversational CV creator app can simplify and enhance this process through interactive dialogue.
+    This plan outlines the steps to create such an application, leveraging conversational UI.
+
+  market_overview_and_analysis:
+    market_landscape: |
+      Extensive CV creator applications exist, offering templates, formatting, and AI integration.
+      AI features include content suggestions, keyword optimization, and feedback.
+      A new app needs a distinct advantage, with conversational interface as a key differentiator.
+    competitive_gap: |
+      While CV builders are common, fully conversational interfaces are less prevalent.
+      Existing apps may have conversational elements but not a comprehensive creation flow.
+      Chatbot resumes exist for sharing, not creation within a dedicated app.
+      A gap exists for a dedicated mobile app with a full conversational UI for step-by-step CV building.
+    key_features_best_practices: |
+      Successful CV builders offer features like auto-creation, smart import, content optimization,
+      templates, customization, and export.
+      Best practices include step-by-step guidance, examples, cover letter templates, ATS optimization,
+      and format flexibility (chronological, functional, combination).
+      Some apps add personal touches, LinkedIn import, and job search integration.
+      Ease of use, professional templates, and job seeker needs are crucial.
+
+  target_audience_profile:
+    audience_spectrum: |
+      Broad target audience: students, graduates, professionals, across demographics and career stages.
+      Includes full-time, part-time, and remote job seekers.
+      App needs to be adaptable and intuitive for diverse users.
+    tech_comfort_levels: |
+      Varying tech comfort levels exist within the audience.
+      Conversational interface must be exceptionally intuitive, with clear instructions.
+      Minimize jargon, use natural language for broad accessibility.
+    primary_needs: |
+      Primary need: professional-looking CV highlighting skills and experience.
+      Tailoring CVs to specific job applications is critical.
+      ATS optimization is essential for digital recruitment.
+      Flexibility for different resume formats (chronological, functional, combination).
+      Varying length preferences (one-page vs. two-page CVs).
+
+  feature_definition_moscow:
+    moscow_prioritization: |
+      Features prioritized using MOSCOW method: Must have, Should have, Could have, Won't have.
+    feature_priority_table:
+      - feature: "Core Conversational Flow (Personal Info, Experience, Education)"
+        priority: "Must have"
+      - feature: "Skills Section"
+        priority: "Should have"
+      - feature: "Basic Template Options"
+        priority: "Should have"
+      - feature: "Export to PDF"
+        priority: "Should have"
+      - feature: "Cover Letter Generation"
+        priority: "Could have"
+      - feature: "Advanced Formatting Options"
+        priority: "Could have"
+      - feature: "Multiple Language Support"
+        priority: "Could have"
+      - feature: "Complex Integrations (Job Submission)"
+        priority: "Won't have"
+      - feature: "Advanced AI (Content Generation, Personalized Advice beyond suggestions)"
+        priority: "Won't have"
+    must_have: |
+      Core functionality: conversational flow for fundamental CV sections.
+      Includes Personal Information, Experience, and Education details.
+      Prioritize clarity and ease of input for essential data points.
+      Without these, the app cannot fulfill its primary purpose.
+    should_have: |
+      Enhancements: Skills Section, Basic Template Options, Export to PDF.
+      Improve usability, visual appeal, and value proposition.
+      Expected in modern CV builders, substantially improve user experience.
+    could_have: |
+      Additional features: Cover Letter Generation, Advanced Formatting Options, Multiple Language Support.
+      Add significant value, cater to wider needs, but not essential for initial launch.
+    wont_have: |
+      Excluded for initial phase: Complex Integrations (Job Submission), Advanced AI (Content Generation, Personalized Advice).
+      Maintain focus, streamline development, prioritize core conversational flow.
+      Deferred to future updates due to complexity and dependencies.
+
+  technical_feasibility_roo_code:
+    roo_code_capabilities: |
+      Roo Code: VS Code plugin, AI-powered coding agent.
+      Capabilities: natural language, file read/write, terminal commands, browser automation.
+      Supports AI models (OpenAI, Anthropic, DeepSeek, local), Custom Modes, MCP integration.
+      Strengths: AI-driven coding assistance within VS Code.
+      Limitations: not designed for building mobile app UIs.
+    roo_code_limitations_mobile_ui: |
+      No direct features for mobile app UIs (conversational or traditional) within Roo Code.
+      Operates as a VS Code plugin, not a mobile app platform.
+      Developing mobile app UI with Roo Code would be technically challenging.
+    potential_roo_code_value: |
+      Roo Code could support backend code generation or data model definition.
+      MCP could integrate with external services (cloud storage, APIs).
+      Useful for backend components or integrations, not primary UI development.
+
+  detailed_development_steps:
+    assumptions: |
+      Assumes a platform more suitable for mobile app UI development than Roo Code.
+    conversational_flow_design: |
+      Foundation: well-designed conversational flow guiding users through CV sections.
+      Sections: Personal Information, Experience, Education, Skills.
+      Define clear, concise questions for each step, easily understandable.
+      Implement conditional logic to tailor conversation based on user responses.
+      Use various question formats: text input, multiple-choice, interactive elements.
+      Aim for natural, intuitive dialogue, less like form-filling, more like guided conversation.
+      Well-structured conversation expected to lead to higher completion rates and user satisfaction.
+    data_models_creation: |
+      Define robust data models to store user information effectively.
+      Outline data structure for each CV field (e.g., name as string, experience as list of objects).
+      Select suitable data storage: local storage (initial), cloud-based database (advanced).
+      Well-defined data models fundamental for organizing user data, facilitating export and future enhancements.
+    ui_elements_template_formatting: |
+      User-friendly interface for template selection is essential.
+      Visually appealing gallery of template previews for easy browsing.
+      Provide basic formatting options (font styles, sizes) if feasible.
+      Templates save time, ensure polished output; basic formatting allows personalization.
+    export_functionality_pdf: |
+      Export completed CV as PDF is critical requirement.
+      Integrate third-party library or service for PDF generation.
+      Ensure well-formatted PDFs, maintaining template layout and styling.
+      Reliable export to high-quality PDF is essential for sharing CVs with employers.
+
+  best_practices_conversational_ui_ux:
+    guiding_conversation: |
+      Start with clear, welcoming introduction explaining app purpose.
+      Use simple, natural language, avoid jargon.
+      Ask one question at a time, focus on single piece of information.
+      Provide clear instructions and examples for specific questions.
+      Offer options/suggestions to help users navigate and provide details.
+      Create a helpful, supportive conversational flow, making CV creation manageable.
+    user_control_flexibility: |
+      Empower users with control over CV creation process.
+      Allow easy navigation back to previous sections for editing.
+      Provide options to skip sections (with warnings about incompleteness).
+      User should feel in control of pace and direction of conversation.
+      Flexibility prevents frustration, caters to varying user needs.
+    visual_design_conversational_interface: |
+      Visual design crucial for user experience: clean, intuitive, appealing.
+      Clear visual cues for user's step and overall progress.
+      Consider chatbot-like interface with distinct styling for user/app messages.
+      Well-executed visual design enhances usability and satisfaction.
+    feedback_suggestions: |
+      Offer real-time feedback on user input (e.g., email format validation).
+      Incorporate helpful tips and suggestions for effective CV content (action verbs, quantifiable achievements).
+      Basic contextual tips provide significant value, guide users to create impactful CVs.
+
+  key_performance_indicators_kpis:
+    completion_rate: |
+      Percentage of users completing CV creation process to export.
+      High completion rate indicates effective conversational flow and app value.
+    time_to_create_cv: |
+      Average time taken to complete CV from start to finish.
+      Shorter time suggests streamlined conversational flow and ease of input.
+    user_satisfaction_conversational_flow: |
+      Gather feedback on user satisfaction with conversational aspect.
+      In-app ratings, feedback surveys, app store reviews.
+      Positive feedback validates conversational design and UX.
+    number_cvs_exported: |
+      Total number of CVs generated and exported by users.
+      Direct measure of app usage and value to target audience.
+    user_retention_rate: |
+      Percentage of users returning to update CV or create multiple versions.
+      Indicator of long-term engagement and user loyalty.
+
+  app_store_submission_guidelines:
+    general_guidelines: |
+      Adhere to app store guidelines (Apple App Store, Google Play Store).
+      Thoroughly test for crashes/bugs for stable user experience.
+      Complete and accurate app information and metadata (name, description, keywords, screenshots).
+      Include privacy policy outlining data handling.
+      Ensure all links within app are functional.
+      App must not contain objectionable content.
+      Offer sufficient functionality and lasting value.
+    low_code_platform_considerations: |
+      Research and comply with guidelines of chosen low-code platform (if applicable).
+      Adherence to terms of service, licensing, technical requirements.
+      Ensure compliance with app stores and development platform guidelines for successful submission.
+
+  conclusion_next_steps: |
+    Development plan outlines approach to conversational CV creator app.
+    MOSCOW prioritization focuses initial development on core conversational functionality.
+    Roo Code limitations for mobile UI suggest exploring alternative platforms.
+    Next steps: research mobile app platforms, detailed conversational flow and UI design,
+    functional prototype for core sections, assemble development team.
+
+  obras_citadas:
+    - "Intelligent CV Maker - CVpop on the App Store, fecha de acceso: marzo 29, 2025, https://apps.apple.com/us/app/intelligent-cv-maker-cvpop/id1473493711"
+    - "AI Resume Builder & CV Editor 4+ - App Store, fecha de acceso: marzo 29, 2025, https://apps.apple.com/us/app/ai-resume-builder-cv-editor/id1475886222"
+    - "Resume - Intelligent CV maker - Apps on Google Play, fecha de acceso: marzo 29, 2025, https://play.google.com/store/apps/details?id=icv.resume.curriculumvitae"
+    - "The Best Free Online Resume Builder - ResumeBuilder.com, fecha de acceso: marzo 29, 2025, https://www.resumebuilder.com/"
+    - "Free AI Resume Builder [Fast & Easy] | Resume-Now®, fecha de acceso: marzo 29, 2025, https://www.resume-now.com/"
+    - "Best Resume Writing Services for 2025 - CNET, fecha de acceso: marzo 29, 2025, https://www.cnet.com/tech/services-and-software/best-resume-writing-services/"
+    - "The 10 Best Resume Builders in 2025: Pros & Cons, fecha de acceso: marzo 29, 2025, https://resumegenius.com/blog/resume-help/best-resume-builder-website"
+    - "Top 10 Resume Builders of 2025: We Tried Them All so You Don't Have to | Kickresume, fecha de acceso: marzo 29, 2025, https://www.kickresume.com/en/help-center/10-best-resume-builders/"
+    - "The 6 Best Resume Builders—We Weighed The Pros And Cons - Forbes, fecha de acceso: marzo 29, 2025, https://www.forbes.com/sites/forbes-personal-shopper/article/best-resume-builders/"
+    - "Best resume builder of 2025 - TechRadar, fecha de acceso: marzo 29, 2025, https://www.techradar.com/best/best-resume-builder"
+    - "The Best Free AI Resume Builder, fecha de acceso: marzo 29, 2025, https://www.rezi.ai/ai-resume-builder"
+    - "Resumatic - Fastest ChatGPT-Powered Resume Builder, fecha de acceso: marzo 29, 2025, https://www.resumatic.ai/"
+    - "AI Resume Builder - Enhancv, fecha de acceso: marzo 29, 2025, https://enhancv.com/ai-resume-builder/"
+    - "Free AI Resume Builder Trusted by +3 Million Job Seekers, fecha de acceso: marzo 29, 2025, https://www.rezi.ai/"
+    - "AI Resume Builder Trusted by 6 Million Job Seekers | Kickresume, fecha de acceso: marzo 29, 2025, https://www.kickresume.com/en/ai-resume-writer/"
+    - "Free Resume Builder - Create & Download Easily | Resume.com, fecha de acceso: marzo 29, 2025, https://www.resume.com/"
+    - "Free Online Resume Builder - MyPerfectResume®, fecha de acceso: marzo 29, 2025, https://www.myperfectresume.com/"
+    - "Resume Builder for 2025 | Free Resume Builder | Novorésumé, fecha de acceso: marzo 29, 2025, https://novoresume.com/"
+    - "Resume.co: Free Online Resume Builder to Get Hired in 2025, fecha de acceso: marzo 29, 2025, https://resume.co/"
+    - "What is a Resume Builder? Benefits and Features | Microsoft Word, fecha de acceso: marzo 29, 2025, https://www.microsoft.com/en-us/microsoft-365/word/resume-builder"
+    - "9 of the Best ChatGPT Resume Prompts to Land More Interviews - Careerflow.ai, fecha de acceso: marzo 29, 2025, https://www.careerflow.ai/blog/chatgpt-resume-prompts"
+    - "How to Write a CV with ChatGPT (Prompts & Tips) - MyPerfectResume, fecha de acceso: marzo 29, 2025, https://www.myperfectresume.com/career-center/resumes/how-to/chat-gpt-cv"
+    - "10 Best AI CV Makers and CV Builders for 2025 - LiveCareer, fecha de acceso: marzo 29, 2025, https://www.livecareer.co.uk/cv/best-ai-cv-builder"
+    - "Chatbot Resume: Step-by-Step Tutorial - Landbot, fecha de acceso: marzo 29, 2025, https://landbot.io/blog/chatbot-resume"
+    - "CV Builder Chatbot : Turn Conversation into Professional Resume - Makerobos, fecha de acceso: marzo 29, 2025, https://makerobos.com/blogs/ask-an-expert/cv-builder-chatbot-for-making-professional-resume"
+    - "Key Elements of a Resume | DO-IT - University of Washington, fecha de acceso: marzo 29, 2025, https://www.washington.edu/doit/key-elements-resume"
+    - "How to Write a Resume in 2025 (Examples & Guide) - MyPerfectResume, fecha de acceso: marzo 29, 2025, https://www.myperfectresume.com/career-center/resumes/how-to/write"
+    - "How To Write Your Resume For You Target Audience - Cheeky Scientist, fecha de acceso: marzo 29, 2025, https://cheekyscientist.com/who-you-should-be-writing-your-resume-for/"
+    - "Targeted Resume - Get a Free ATS Resume Scan - Keyword Optimize your Resume, fecha de acceso: marzo 29, 2025, https://resumeworded.com/targeted-resume"
+    - "Who Is The Target Audience For Your Resume? - ClearPointHCO, fecha de acceso: marzo 29, 2025, https://www.clearpointhco.com/who-is-the-target-audience-for-your-resume/"
+    - "How to Write a Targeted Resume: Examples & Tips - Teal, fecha de acceso: marzo 29, 2025, https://www.tealhq.com/post/how-to-write-a-targeted-resume"
+    - "Building a Resume - Rogue Community College, fecha de acceso: marzo 29, 2025, https://www.roguecc.edu/studentEmployment/resume.asp"
+    - "12 Top Conversational AI Platforms in 2025 - Sprinklr, fecha de acceso: marzo 29, 2025, https://www.sprinklr.com/blog/conversational-ai-platforms/"
+    - "Top 15 Conversational AI Platforms for 2025, fecha de acceso: marzo 29, 2025, https://www.rezolve.ai/blog/top-10-conversational-ai-platforms-to-watch-out"
+    - "Top Chatbot Development Frameworks for Web Apps 2024-25 - Trigma, fecha de acceso: marzo 29, 2025, https://trigma.com/technology-stack/chatbot-development-frameworks/"
+    - "Roo Code (prev. Roo Cline) gives you a whole dev team of AI agents in your code editor. - GitHub, fecha de acceso: marzo 29, 2025, https://github.com/RooVetGit/Roo-Code"
+    - "Roo Code is AMAZING - AI VSCode Extension (better than Cursor?) - YouTube, fecha de acceso: marzo 29, 2025, https://www.youtube.com/watch?v=r5T3h0BOiWw"
+    - "Build Your Ultimate Coding Agent: Deepseek R1 & Roo Code - Apidog, fecha de acceso: marzo 29, 2025, https://apidog.com/blog/deepseek-r1-roocode-ai/"
+    - "RooCode v3.3 UPDATE: Fully FREE Autonomous AI Coding Agent! (FREE API, Checkpoints, Markdown) - Chaindesk, fecha de acceso: marzo 29, 2025, https://www.chaindesk.ai/tools/youtube-summarizer/roo-code-v3-3-update-fully-free-autonomous-ai-coding-agent-free-api-checkpoints-markdown-PE-0P6SAZYc"
+    - "Deepseek-R1 + RooCode: BEST AI Coding Agent! Develop a Full-stack App Without Writing ANY Code! - Chaindesk, fecha de acceso: marzo 29, 2025, https://www.chaindesk.ai/tools/youtube-summarizer/deepseek-r1-roo-code-best-ai-coding-agent-develop-a-full-stack-app-without-writing-any-code-2Frayo_8ovQ"
+    - "How to Use MCP Servers with Roo Code (within VSCode) - Apidog, fecha de acceso: marzo 29, 2025, https://apidog.com/blog/mcp-server-roo-code/"
+    - "Roo Code (prev. Roo Cline) is a VS Code plugin that enhances coding with AI-powered automation, multi-model support, and experimental features - GitHub, fecha de acceso: marzo 29, 2025, https://github.com/qpd-v/Roo-Code"
+    - "Level Up Your Coding with Roo Code and Requesty, fecha de acceso: marzo 29, 2025, https://requesty.ai/blog/level-up-your-coding-with-roo-code-and-requesty"
+    - "How to Use the Roo AI Coding Assistant in Private With Venice API: A Quick Guide, fecha de acceso: marzo 29, 2025, https://venice.ai/blog/how-to-use-the-roo-ai-coding-assistant-in-private-with-venice-api-a-quick-guide"
+    - "Automating a Data Science Project with RooCode and GitHub Copilot: Step-by-Step Guide, fecha de acceso: marzo 29, 2025, https://www.tanyongsheng.com/blog/automating-a-data-science-project-with-roocode-and-github-copilot-step-by-step-guide/"
+    - "Roo Code Integration - cognee docs, fecha de acceso: marzo 29, 2025, https://docs.cognee.ai/integrations/roo_code"
+    - "The Model Context Protocol (MCP) — A Complete Tutorial | by Dr. Nimrita Koul - Medium, fecha de acceso: marzo 29, 2025, https://medium.com/@nimritakoul01/the-model-context-protocol-mcp-a-complete-tutorial-a3abe8a7f4ef"
+    - "Teaching your AI to do stuff — Model Context Protocol | by Ian Sinnott - Medium, fecha de acceso: marzo 29, 2025, https://medium.com/@ians/teaching-your-ai-to-do-stuff-model-context-protocol-4d4ea655fd40"
+    - "Build and deploy Remote Model Context Protocol (MCP) servers to Cloudflare, fecha de acceso: marzo 29, 2025, https://blog.cloudflare.com/remote-model-context-protocol-servers-mcp/"
+    - "UX design for chatbots: How to create human-like conversations, fecha de acceso: marzo 29, 2025, https://www.uxdesigninstitute.com/blog/chatbot-ux-design/"
+    - "What are Conversational Forms? 7 Examples in Action - WayMore, fecha de acceso: marzo 29, 2025, https://www.waymore.io/blog/what-are-conversational-forms/"
+    - "A Conversational Interface In A Contact Form ... Why? - Usability Geek, fecha de acceso: marzo 29, 2025, https://usabilitygeek.com/conversational-interface-contact-form/"
+    - "Conversational Interfaces: The Future of UI [+6 Use Cases] - The App Solutions, fecha de acceso: marzo 29, 2025, https://theappsolutions.com/blog/development/guide-to-conversational-user-interfaces/"
+    - "Conversational Form Design: Everything You Need To Know, fecha de acceso: marzo 29, 2025, https://formidableforms.com/conversational-form-design/"
+    - "What Is Conversational UX and Why Is It Taking Over? - Userpilot, fecha de acceso: marzo 29, 2025, https://userpilot.com/blog/conversational-ux/"
+    - "13 Best Chatbot UI Examples in 2025 - Copilot.Live, fecha de acceso: marzo 29, 2025, https://www.copilot.live/blog/best-chatbot-ui"
+    - "10 actionable tips to design your UI/UX resume | by Bryson M. | Bootcamp | Medium, fecha de acceso: marzo 29, 2025, https://medium.com/design-bootcamp/10-actionable-tips-to-design-your-ui-ux-resume-d847ddcae202"
+    - "Conversational UI Mobile Examples - Designmodo, fecha de acceso: marzo 29, 2025, https://designmodo.com/conversation-mobile-ui/"
+    - "App Review Guidelines - Apple Developer, fecha de acceso: marzo 29, 2025, https://developer.apple.com/app-store/review/guidelines/"
+    - "App Review - Distribute - Apple Developer, fecha de acceso: marzo 29, 2025, https://developer.apple.com/distribute/app-review/"
+    - "Checklist of requirements for apps in the Shopify App Store, fecha de acceso: marzo 29, 2025, https://shopify.dev/docs/apps/launch/app-requirements-checklist"

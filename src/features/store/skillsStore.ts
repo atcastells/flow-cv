@@ -1,42 +1,38 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-
-export interface Skill {
-  id: string;
-  name: string;
-  level: number; // 1-5 skill level
-  category?: string;
-}
+import { persist, createJSONStorage } from 'zustand/middleware';
 
 interface SkillsState {
-  skillsList: Skill[];
-  addSkill: (skill: Skill) => void;
-  updateSkill: (id: string, skill: Partial<Skill>) => void;
-  removeSkill: (id: string) => void;
+  skills: string[];
+  addSkill: (skill: string) => void;
+  removeSkill: (skillToRemove: string) => void;
+  setSkills: (skills: string[]) => void;
+  clearSkills: () => void;
 }
 
-export const useSkillsStore = create<SkillsState, [["zustand/persist", SkillsState]]>(
-  persist<SkillsState>(
-      (set) => ({
-        skillsList: [],
-        addSkill: (skill) => 
-          set((state) => ({
-            skillsList: [...state.skillsList, skill]
-          })),
-        updateSkill: (id, updatedSkill) =>
-          set((state) => ({
-            skillsList: state.skillsList.map((item) =>
-              item.id === id ? { ...item, ...updatedSkill } : item
-            )
-          })),
-        removeSkill: (id) =>
-          set((state) => ({
-            skillsList: state.skillsList.filter((item) => item.id !== id)
-          }))
-      }),
-      {
-        name: 'skills-storage',
-        skipHydration: false,
-      }
-    )
+export const useSkillsStore = create<SkillsState>()(
+  persist(
+    (set) => ({
+      skills: [], // Initial state: empty array
+      addSkill: (skill) =>
+        set((state) => {
+          // Avoid adding duplicates
+          if (!state.skills.includes(skill)) {
+            return { skills: [...state.skills, skill] };
+          }
+          return state; // Return current state if skill already exists
+        }),
+      removeSkill: (skillToRemove) =>
+        set((state) => ({
+          skills: state.skills.filter((skill) => skill !== skillToRemove),
+        })),
+      setSkills: (skills) => set({ skills: skills }),
+      clearSkills: () => set({ skills: [] }),
+    }),
+    {
+      name: 'skills-storage', // localStorage key
+      storage: createJSONStorage(() => localStorage), // Use localStorage
+      partialize: (state) => ({ skills: state.skills }), // Only persist the skills array
+      skipHydration: false, // Ensure state is loaded on initialization
+    }
+  )
 );

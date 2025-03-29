@@ -1,63 +1,33 @@
 import { create } from 'zustand';
-import { persist, PersistOptions } from 'zustand/middleware';
-import { ChatMessageProps } from '@/components/ChatMessage';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import type { Message } from '../ai/service'; // Adjust path as necessary
 
 interface ChatState {
-  messages: ChatMessageProps[];
-  isLoading: boolean;
-  addMessage: (message: ChatMessageProps) => void;
-  setIsLoading: (isLoading: boolean) => void;
+  messages: Message[];
+  addMessage: (message: Message) => void;
+  addMessages: (newMessages: Message[]) => void;
   clearMessages: () => void;
 }
 
-export const useChatStore = create<ChatState, [["zustand/persist", ChatState]]>(
-  persist<ChatState>(
-      (set) => ({
-      messages: [
-        {
-          content: "¡Hola! Soy tu asistente para crear tu CV. Puedo ayudarte a añadir información en las siguientes secciones. También puedes adjuntar un CV existente para extraer automáticamente esta información.",
-          isUser: false,
-          actions: [
-            { label: "Añadir Perfil", action: () => {} },
-            { label: "Añadir Educación", action: () => {} },
-            { label: "Añadir Experiencia", action: () => {} },
-            { label: "Añadir Habilidades", action: () => {} },
-            { label: "Añadir Proyectos", action: () => {} },
-            { label: "Añadir Premios", action: () => {} },
-            { label: "Adjuntar CV existente", action: () => {} }
-          ],
-          timestamp: new Date(),
-          isNew: false
-        }
-      ],
-      isLoading: false,
-      addMessage: (message) => set((state) => ({
-        messages: [...state.messages, message]
-      })),
-      setIsLoading: (isLoading) => set({ isLoading }),
-      clearMessages: () => set({
-        messages: [
-          {
-            content: "¡Hola! Soy tu asistente para crear tu CV. Puedo ayudarte a añadir información en las siguientes secciones. También puedes adjuntar un CV existente para extraer automáticamente esta información.",
-            isUser: false,
-            actions: [
-              { label: "Añadir Perfil", action: () => {} },
-              { label: "Añadir Educación", action: () => {} },
-              { label: "Añadir Experiencia", action: () => {} },
-              { label: "Añadir Habilidades", action: () => {} },
-              { label: "Añadir Proyectos", action: () => {} },
-              { label: "Añadir Premios", action: () => {} },
-              { label: "Adjuntar CV existente", action: () => {} }
-            ],
-            timestamp: new Date(),
-            isNew: false
-          }
-        ]
-      })
+export const useChatStore = create<ChatState>()(
+  persist(
+    (set) => ({
+      messages: [],
+      addMessage: (message) =>
+        set((state) => ({
+          messages: [...state.messages, message],
+        })),
+      addMessages: (newMessages) =>
+        set((state) => ({
+          messages: [...state.messages, ...newMessages],
+        })),
+      clearMessages: () => set({ messages: [] }),
     }),
     {
-      name: 'chat-storage',
-      skipHydration: false,
+      name: 'chat-storage', // Key for localStorage
+      storage: createJSONStorage(() => localStorage), // Use localStorage
+      partialize: (state) => ({ messages: state.messages }), // Only persist the messages array
+      skipHydration: false, // Ensure state is loaded on initialization
     }
   )
 );

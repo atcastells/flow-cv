@@ -33,7 +33,6 @@ const formatCurrentDataForPrompt = (data: CurrentCvData): string => {
  * @returns {string|null} - La cadena de texto formateada o null si la config no es válida.
  */
 const formatSystemPromptAsString = (config, currentCvData: string, language) => {
-    console.log("currentCvData", currentCvData)
   // Verifica si la configuración se cargó correctamente
   if (!config || typeof config !== 'object') {
     console.error("System prompt configuration is invalid or not loaded.");

@@ -3,6 +3,7 @@ import React, { useEffect, useRef } from "react";
 import ActionButton from "./ActionButton";
 import ReactMarkdown from 'react-markdown';
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Paperclip, X } from "lucide-react";
 
 interface Action {
   component: string;
@@ -22,6 +23,7 @@ export interface ChatMessageProps {
   isNew?: boolean;
   onActionClick?: (action: Action) => void;
   inlineComponents?: Record<string, React.ComponentType<any>>;
+  files?: File[]; // Optional: Attachments for the message
 }
 
 const ChatMessage: React.FC<ChatMessageProps> = ({
@@ -31,6 +33,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
   timestamp = new Date(),
   isNew = false,
   onActionClick,
+  files = [],
   inlineComponents = {}
 }) => {
   const messageRef = useRef<HTMLDivElement>(null);
@@ -51,9 +54,22 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
         isUser ? "ml-auto" : "mr-auto"
       )}
     >
+      <div className="flex flex-col gap-1 w-full ">
+      <div className="flex w-full gap-2 mb-1 flex-1">
+        {files.length > 0 && (
+          <div className="flex flex-col w-full gap-2">
+            {files.map((file, index) => (
+              <div key={index} className="cursor-pointer flex items-center gap-1 border-primary border rounded-md px-2 py-1 w-full" onClick={() => window.open(URL.createObjectURL(file), "_blank")}>
+                <Paperclip size={16} />
+                <span>{file.name}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        </div>
       <div
         className={cn(
-          "rounded-2xl px-3 sm:px-4 py-2 sm:py-3 shadow-sm",
+          "rounded-md px-3 sm:px-4 py-2 sm:py-3 shadow-sm",
           isUser
             ? "bg-user text-user-foreground"
             : "bg-ai text-ai-foreground"
@@ -167,6 +183,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
         )}
       >
         {(timestamp instanceof Date ? timestamp : new Date(timestamp)).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+      </div>
       </div>
     </div>
   );

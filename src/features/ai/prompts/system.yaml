@@ -65,7 +65,7 @@ tools:
       type: "object"
       properties:
         # Each property name maps to an object defining its type and description
-        full_name:
+        name:
           type: "string"
           description: "The user's full name."
         email:
@@ -89,9 +89,9 @@ tools:
       # List of property names that MUST be included when calling the tool.
       # Adjust this based on your actual requirements for saving/updating.
       # For updates, 'email' might be the only required field.
-      # For initial save, 'full_name' and 'email' might be required.
+      # For initial save, 'name' and 'email' might be required.
       - "email"
-      - "full_name"
+      - "name"
 
   - name: "save_skills"
     description: |

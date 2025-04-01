@@ -39,10 +39,12 @@ export type ContentPart = TextPart | ImageUrlPart;
 export interface Message {
   role: 'system' | 'user' | 'assistant' | 'tool';
   // Content can be a simple string, null (for tool calls), or an array for multimodal input
-  content: string | null | ContentPart[]; 
+  content: string | null | ContentPart[] | React.ComponentType<any>;
   name?: string; // Optional: Used by some APIs for tool role to identify the function
   tool_calls?: ToolCall[]; // Present for assistant role when requesting calls
   tool_call_id?: string; // Required for tool role messages to match the call ID
+  isLocal?: boolean; // Indicates if the message is local (not from the API)
+  id?: string; // Optional: Unique ID for the message
   // REMOVED 'files?: File[]' - This is NOT the standard way to send files via API.
   // File data MUST be converted to Base64 Data URI and included in the 'content' array.
 }
@@ -109,14 +111,14 @@ export class OpenRouterService {
   }
 
   async getAvailableModels(): Promise<ModelInfo[]> {
-      // Logic remains the same - fetches model list
-      // ... (implementation from your previous code) ...
+
       try {
           const response = await axios.get<{ data: ModelInfo[] }>('https://openrouter.ai/api/v1/models', {
               headers: { /* ... headers ... */ }
           });
-          // Your filtering logic...
-          return response.data.data.filter((model: any) => { /* ... filter ... */ });
+          return response.data.data.filter((model) => { 
+              return model.name.includes('free')
+           });
       } catch (error) {
           // Your error handling...
           console.error("Error fetching OpenRouter models:", error);

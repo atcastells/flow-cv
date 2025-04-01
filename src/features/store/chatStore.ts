@@ -1,13 +1,24 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { Message } from '../ai/service'; // Adjust path as necessary
+import type { Message } from '../ai/service';
 
 interface ChatState {
   messages: Message[];
   addMessage: (message: Message) => void;
   addMessages: (newMessages: Message[]) => void;
   clearMessages: () => void;
+  deleteMessage: (id: string) => void;
 }
+
+const ensureMessageId = (message: Message): Message => {
+  if (!message.id) {
+    return {
+      ...message,
+      id: crypto.randomUUID()
+    };
+  }
+  return message;
+};
 
 export const useChatStore = create<ChatState>()(
   persist(
@@ -15,19 +26,23 @@ export const useChatStore = create<ChatState>()(
       messages: [],
       addMessage: (message) =>
         set((state) => ({
-          messages: [...state.messages, message],
+          messages: [...state.messages, ensureMessageId(message)],
         })),
       addMessages: (newMessages) =>
         set((state) => ({
-          messages: [...state.messages, ...newMessages],
+          messages: [...state.messages, ...newMessages.map(ensureMessageId)],
         })),
       clearMessages: () => set({ messages: [] }),
+      deleteMessage: (id) =>
+        set((state) => ({
+          messages: state.messages.filter((msg) => msg.id !== id),
+        })),
     }),
     {
-      name: 'chat-storage', // Key for localStorage
-      storage: createJSONStorage(() => localStorage), // Use localStorage
-      partialize: (state) => ({ messages: state.messages }), // Only persist the messages array
-      skipHydration: false, // Ensure state is loaded on initialization
+      name: 'chat-storage',
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({ messages: state.messages }),
+      skipHydration: false,
     }
   )
 );

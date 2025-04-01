@@ -1,18 +1,29 @@
-// TODO: Implement actual logic to save personal info, potentially using a store or API call.
-// For now, it retains the placeholder behavior.
+import { useProfileStore, PersonalData } from '../../store/profileStore';
 
 /**
- * Placeholder tool function to simulate saving personal information.
- * Logs arguments and returns a success status.
- * @param args - The arguments provided by the AI for the tool call. Expected structure depends on the prompt.
- * @returns A promise resolving to an object indicating the status of the operation.
+ * Tool function to save personal information to the profile store.
+ * @param args - The personal data to be saved
+ * @returns A promise resolving to an object indicating the status of the operation
  */
-export async function savePersonalInfoTool(args: { [key: string]: any }): Promise<object> {
+export async function savePersonalInfoTool(args: PersonalData): Promise<object> {
   console.log("--- Executing Tool: save_personal_info ---");
   console.log("Arguments:", args);
-  // Simulate async operation
-  await new Promise(resolve => setTimeout(resolve, 500));
-  // TODO: Replace with actual implementation (e.g., update Zustand store, call API)
-  // Example: useProfileStore.getState().updateProfile(args);
-  return { status: "success", message: "Personal info processed.", received_args: args };
+  
+  try {
+    // Update the profile store with the provided personal data
+    useProfileStore.getState().setPersonalData(args);
+    
+    return {
+      status: "success",
+      message: "Personal info saved to store successfully.",
+      received_args: args
+    };
+  } catch (error) {
+    console.error("Error saving personal info:", error);
+    return {
+      status: "error",
+      message: "Failed to save personal info to store.",
+      error: error instanceof Error ? error.message : "Unknown error"
+    };
+  }
 }

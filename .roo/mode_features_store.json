@@ -1,0 +1,88 @@
+{
+  "features": {
+    "product_vision_strategy_definition": {
+      "description": "Defines the overall product vision and strategy.",
+      "relevant_modes": ["cpo"],
+      "how_it_works_cpo": "The CPO mode analyzes user needs, market trends, and business goals to formulate a product vision and strategy. This is documented in `memory-bank/productContext.md` and `memory-bank/roadmap.md`.",
+      "how_to_use_cpo": "Engage the CPO mode to discuss and refine the product vision and strategy. Provide input on market needs, user feedback, and business objectives."
+    },
+    "requirements_gathering_clarification": {
+      "description": "Gathers and clarifies product requirements from the user.",
+      "relevant_modes": ["cpo"],
+      "how_it_works_cpo": "The CPO mode uses `ask_followup_question` to interact with the user, asking clarifying questions about feature requests and product needs. Requirements are documented in `memory-bank/productContext.md`.",
+      "how_to_use_cpo": "Describe your feature requests and product needs to the CPO mode. Respond to clarifying questions to ensure requirements are well-defined."
+    },
+    "product_documentation_management": {
+      "description": "Manages product-related documentation in the Memory Bank.",
+      "relevant_modes": ["cpo"],
+      "how_it_works_cpo": "The CPO mode uses `write_to_file`, `apply_diff` and `read_file` to create, update, and manage product documentation files within the `memory-bank/` directory, such as `productContext.md`, `projectBrief.md`, and `roadmap.md`.",
+      "how_to_use_cpo": "Request the CPO mode to create or update product documentation. Specify the file and content to be managed."
+    },
+    "feature_task_prioritization": {
+      "description": "Prioritizes features and tasks.",
+      "relevant_modes": ["cpo"],
+      "how_it_works_cpo": "The CPO mode analyzes product goals, user needs, and dependencies to prioritize features and tasks. This prioritization is reflected in `memory-bank/tasks.yaml` and roadmap files.",
+      "how_to_use_cpo": "Discuss product priorities and goals with the CPO mode. Request prioritization of specific features or tasks."
+    },
+    "high_level_task_delegation": {
+      "description": "Delegates high-level technical tasks to the Architect mode.",
+      "relevant_modes": ["cpo"],
+      "how_it_works_cpo": "The CPO mode uses the `new_task` tool to delegate well-defined technical tasks to the Architect mode, referencing tasks defined in `memory-bank/tasks.yaml`.",
+      "how_to_use_cpo": "After defining a high-level task, the CPO mode will automatically delegate it to the Architect. You can also explicitly ask the CPO to delegate a specific task."
+    },
+    "user_interaction_cpo": {
+      "description": "Primary point of contact for user interaction related to product definition.",
+      "relevant_modes": ["cpo"],
+      "how_it_works_cpo": "The CPO mode is designed to be the primary interface for users to discuss product vision, requirements, and priorities. It uses `ask_followup_question` for clarification and confirmation.",
+      "how_to_use_cpo": "Interact with the CPO mode to discuss any product-related topics, provide feedback, request features, or clarify requirements."
+    },
+    "technical_design_architecture": {
+      "description": "Designs technical solutions and overall system architecture.",
+      "relevant_modes": ["architect"],
+      "how_it_works_architect": "The Architect mode analyzes requirements from the CPO, consults the Memory Bank, and designs technical solutions. Decisions are logged in `memory-bank/decisionLog.md` and patterns in `memory-bank/systemPatterns.md`.",
+      "how_to_use_architect": "The CPO delegates tasks requiring technical design to the Architect. The Architect performs the design and logs decisions."
+    },
+    "task_decomposition": {
+      "description": "Breaks down high-level CPO tasks into smaller, technical subtasks.",
+      "relevant_modes": ["architect"],
+      "how_it_works_architect": "Upon receiving a task from the CPO, the Architect analyzes it and breaks it down into manageable technical subtasks. These subtasks are created and defined in `memory-bank/tasks.yaml`.",
+      "how_to_use_architect": "This is an internal process performed by the Architect after receiving a task from the CPO."
+    },
+    "technical_task_management": {
+      "description": "Manages technical subtasks within tasks.yaml.",
+      "relevant_modes": ["architect"],
+      "how_it_works_architect": "The Architect mode uses `read_file` and `write_to_file` to create, update status, and manage the history of technical subtasks within `memory-bank/tasks.yaml`.",
+      "how_to_use_architect": "The Architect automatically manages technical tasks in `tasks.yaml` as part of the workflow (decomposition, delegation, status updates based on specialist reports)."
+    },
+    "specialist_delegation": {
+      "description": "Delegates technical subtasks to specialist modes (Code, Test, Debug, Ask).",
+      "relevant_modes": ["architect"],
+      "how_it_works_architect": "After defining subtasks in `tasks.yaml`, the Architect uses the `new_task` tool to delegate specific subtasks (referencing their IDs) to the appropriate specialist mode (Code, Test, Debug, Ask) with detailed instructions.",
+      "how_to_use_architect": "This is an internal orchestration process performed by the Architect."
+    },
+    "technical_documentation_management": {
+      "description": "Manages technical Memory Bank files.",
+      "relevant_modes": ["architect"],
+      "how_it_works_architect": "The Architect mode uses `insert_content`, `apply_diff`, and `write_to_file` to manage technical documentation like `decisionLog.md`, `systemPatterns.md`, and `activeContext.md` within the `memory-bank/` directory.",
+      "how_to_use_architect": "The Architect automatically updates technical documentation as decisions are made or patterns are established. You can also potentially ask the Architect to review or update specific technical documentation."
+    },
+    "cpo_clarification": {
+      "description": "Asks the CPO clarifying questions about requirements for technical planning.",
+      "relevant_modes": ["architect"],
+      "how_it_works_architect": "If requirements received from the CPO are ambiguous or incomplete for technical planning, the Architect uses the `ask_followup_question` tool to ask the CPO for clarification, providing technical options or implications.",
+      "how_to_use_architect": "The Architect will proactively ask the CPO for clarification when needed during the technical planning phase."
+    },
+    "reporting_to_cpo": {
+      "description": "Reports technical task completion and status back to the CPO.",
+      "relevant_modes": ["architect"],
+      "how_it_works_architect": "Once a technical task delegated by the CPO is complete (including all its subtasks), the Architect uses the `attempt_completion` tool to report the final status and summary back to the CPO, referencing the original task ID.",
+      "how_to_use_architect": "The Architect automatically reports back to the CPO upon completion of a delegated technical task."
+    },
+    "code_analysis_architect": {
+      "description": "Analyzes existing code and project structure for technical planning.",
+      "relevant_modes": ["architect"],
+      "how_it_works_architect": "The Architect uses tools like `read_file`, `search_files`, and `list_code_definition_names` to analyze the codebase and understand the existing structure before designing solutions or decomposing tasks.",
+      "how_to_use_architect": "This is primarily an internal analysis step performed by the Architect during technical planning."
+    }
+  }
+}

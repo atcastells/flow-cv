@@ -1,9 +1,16 @@
 import { cn } from "@/lib/utils";
-import React, { useEffect, useRef } from "react";
+import React, { createElement, useEffect, useRef } from "react";
 import ActionButton from "./ActionButton";
 import ReactMarkdown from 'react-markdown';
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Paperclip, X } from "lucide-react";
+import { MoreVertical, Paperclip } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import ProfileCard from "./ProfileCard";
 
 interface Action {
   component: string;
@@ -18,26 +25,29 @@ export interface ActionButtonData {
 export interface ChatMessageProps {
   content: string;
   isUser: boolean;
-  actions?: ActionButtonData[];
   timestamp?: Date;
   isNew?: boolean;
   onActionClick?: (action: Action) => void;
-  inlineComponents?: Record<string, React.ComponentType<any>>;
-  files?: File[]; // Optional: Attachments for the message
+  files?: File[];
+  id?: string;
+  onDelete?: (id: string) => void;
+  onProfileSave?: () => void;
+  isLocal?: boolean;
 }
 
 const ChatMessage: React.FC<ChatMessageProps> = ({
   content,
   isUser,
-  actions = [],
   timestamp = new Date(),
   isNew = false,
   onActionClick,
   files = [],
-  inlineComponents = {}
+  id,
+  onDelete,
+  isLocal = false,
+  onProfileSave,
 }) => {
   const messageRef = useRef<HTMLDivElement>(null);
-  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (isNew && messageRef.current) {
@@ -51,139 +61,94 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
       ref={messageRef}
       className={cn(
         "message-container mb-4 max-w-[95%] sm:max-w-[85%] md:max-w-[80%] animate-fade-in",
-        isUser ? "ml-auto" : "mr-auto"
+        isUser && !isLocal ? "ml-auto" : "mr-auto",
+        isLocal ? "w-full !max-w-full" : ""
       )}
     >
-      <div className="flex flex-col gap-1 w-full ">
-      <div className="flex w-full gap-2 mb-1 flex-1">
-        {files.length > 0 && (
-          <div className="flex flex-col w-full gap-2">
-            {files.map((file, index) => (
-              <div key={index} className="cursor-pointer flex items-center gap-1 border-primary border rounded-md px-2 py-1 w-full" onClick={() => window.open(URL.createObjectURL(file), "_blank")}>
-                <Paperclip size={16} />
-                <span>{file.name}</span>
-              </div>
-            ))}
-          </div>
-        )}
+      <div className="flex flex-col gap-1 w-full">
+        <div className="flex w-full gap-2 mb-1 flex-1">
+          {files.length > 0 && (
+            <div className="flex flex-col w-full gap-2">
+              {files.map((file, index) => (
+                <div key={index} className="cursor-pointer flex items-center gap-1 border-primary border rounded-md px-2 py-1 w-full" onClick={() => window.open(URL.createObjectURL(file), "_blank")}>
+                  <Paperclip size={16} />
+                  <span>{file.name}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-      <div
-        className={cn(
-          "rounded-md px-3 sm:px-4 py-2 sm:py-3 shadow-sm",
-          isUser
-            ? "bg-user text-user-foreground"
-            : "bg-ai text-ai-foreground"
-        )}
-      >
-        {(() => {
-          const parts: { type: 'text' | 'component'; content?: string; fullMatch?: string; component?: string; attributes?: string }[] = [];
-          let lastIndex = 0;
-          const actionRegex = /`(?:<action>(.*?)<\/action>)`/gm; // Modified regex to capture backticks
-          let actionMatch;
-
-          while ((actionMatch = actionRegex.exec(content)) !== null) {
-            // Add text before the action block
-            if (actionMatch.index > lastIndex) {
-              parts.push({
-                type: 'text',
-                content: content.substring(lastIndex, actionMatch.index)
-              });
-            }
-
-            const actionContent = actionMatch[1]?.trim(); // Content inside <action>
-            if (actionContent) {
-              const selfClosingTagRegex = /<([^\s>]+)(?:\s+([^>]*))?\/>/;
-              const selfClosingMatch = actionContent.match(selfClosingTagRegex);
-
-              if (selfClosingMatch) {
-                parts.push({
-                  type: 'component',
-                  fullMatch: actionMatch[0], // Store the full match (including backticks and <action>)
-                  component: selfClosingMatch[1],
-                  attributes: selfClosingMatch[2] || ''
-                });
-              } else {
-                // If no self-closing tag found inside <action>, treat the whole block as text (including backticks)
-                parts.push({
-                  type: 'text',
-                  content: actionMatch[0]
-                });
-              }
-            } else {
-              // If <action> tag was present but empty, treat as text (including backticks)
-              parts.push({
-                type: 'text',
-                content: actionMatch[0]
-              });
-            }
-
-            lastIndex = actionMatch.index + actionMatch[0].length;
-          }
-
-          // Add remaining text after the last action block
-          if (lastIndex < content.length) {
-            parts.push({
-              type: 'text',
-              content: content.substring(lastIndex)
-            });
-          }
-
-          return parts.map((part, index) => {
-            if (part.type === 'text') {
-              return (
-                <ReactMarkdown key={index} components={{
-                  p: ({ children }) => <span className="inline whitespace-pre-wrap">{children}</span>
-                }}>{part.content}</ReactMarkdown>
-              );
-            } else if (part.type === 'component') {
-              const componentName = part.component;
-              const attributesStr = part.attributes;
-              let props: Record<string, any> = {};
-
-              const attributeMatches = attributesStr.matchAll(/([^\s=]+)="([^"]*)"/g);
-              for (const attrMatch of attributeMatches) {
-                const [_, attrName, attrValue] = attrMatch;
-                props[attrName] = attrValue;
-              }
-
-              if (inlineComponents[componentName]) {
-                const InlineComponent = inlineComponents[componentName];
-                return <InlineComponent key={index} {...props} />;
-              } else if (onActionClick) {
-                try {
-                  const label = componentName.replace(/([A-Z])/g, ' $1').trim();
-                  const action: Action = {
-                    component: componentName,
-                    props
-                  };
-                  return (
-                    <span key={index} className="mx-1 inline-flex">
-                      <ActionButton
-                        label={isMobile && label.length > 12 ? label.substring(0, 12) + '...' : label}
-                        onClick={() => onActionClick(action)}
-                        variant="secondary"
-                        className="my-1 min-h-[36px]" // Ensure good touch target size
-                      />
-                    </span>
-                  );
-                } catch (error) {
-                  console.error('Error rendering ActionButton:', error);
-                  return part.fullMatch;
+        <div className="flex items-start gap-2">
+          <div
+            className={cn(
+              "rounded-md px-3 sm:px-4 py-2 sm:py-3 shadow-sm flex-grow",
+              isUser && !isLocal
+                ? "bg-user text-user-foreground"
+                : "bg-ai text-ai-foreground",
+              isLocal ? "bg-slate-400" : ""
+            )}
+          >
+            {typeof content === 'string' ? (
+              (() => {
+                const parts: { type: 'text' | 'component'; content?: string; fullMatch?: string; component?: string; attributes?: string }[] = [];
+                let lastIndex = 0;
+                
+                if (lastIndex < content.length) {
+                  parts.push({
+                    type: 'text',
+                    content: content.substring(lastIndex)
+                  });
                 }
-              }
-            }
-            return null;
-          });
-        })()}
-      </div>
-      <div
-        className={cn(
-          "mt-1 text-xs text-muted-foreground",
-          isUser ? "text-right" : "text-left"
-        )}
-      >
-        {(timestamp instanceof Date ? timestamp : new Date(timestamp)).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-      </div>
+
+                if(isLocal) {
+                  const ProfileCardWithData = () => createElement(ProfileCard, { onProfileSave });
+
+                  switch (content) {
+                    case "ProfileCardWithData":
+                      return <ProfileCardWithData key={0} />;
+                    default:
+                  }
+                }
+
+                return parts.map((part, index) => {
+                  if (part.type === 'text') {
+                    return (
+                      <ReactMarkdown key={index} components={{
+                        p: ({ children }) => <span className="inline whitespace-pre-wrap">{children}</span>
+                      }}>{part.content}</ReactMarkdown>
+                    );
+                  } 
+                  return null;
+                });
+              })()
+            ) : null}
+          </div>
+          {id && onDelete && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="p-2 hover:bg-muted rounded-md transition-colors">
+                  <MoreVertical className="h-4 w-4 text-muted-foreground" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  className="text-destructive focus:text-destructive"
+                  onClick={() => onDelete(id)}
+                >
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
+        <div
+          className={cn(
+            "mt-1 text-xs text-muted-foreground",
+            isUser ? "text-right" : "text-left"
+          )}
+        >
+          {(timestamp instanceof Date ? timestamp : new Date(timestamp)).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+        </div>
       </div>
     </div>
   );

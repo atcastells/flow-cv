@@ -55,16 +55,7 @@ const CVSidebar: React.FC<CVSidebarProps> = ({ className, isCollapsed = false, o
               <span className={
                 cn("transition-colors", isCollapsed ? "hidden" : "")
               }>Inicio</span>
-            </button>
-            <button
-              className="w-full flex items-center rounded-md px-3 py-2 text-sm font-medium hover:bg-secondary/50 transition-colors"
-              onClick={() => navigate("/profile")}
-            >
-              <User className="h-5 w-5 mr-3" />
-              <span className={
-                cn("transition-colors", isCollapsed ? "hidden" : "")
-              }>Mi Perfil</span>
-            </button>
+            </button>            
           </nav>
         </div>
       </div>

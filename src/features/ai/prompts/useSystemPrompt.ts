@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 // Importa el archivo YAML directamente. 
 // Asegúrate de que la ruta sea correcta y que Vite/Rollup esté configurado con @rollup/plugin-yaml.
 import systemPromptConfig from './system.yaml'; 
-import { PersonalData, useProfileStore } from '@/features/store';
+import { PersonalData, useCVStore } from '@/features/store/CVStore';
 
 interface CurrentCvData {
     personalData: PersonalData;
@@ -113,7 +113,7 @@ const formatToolDefinitionsForApi = (config) => {
 export const useSystemPrompt = () => {
   // Usamos useMemo para formatear la string y las tools solo una vez, 
   // ya que la importación estática no cambiará durante el ciclo de vida del componente.  
-  const {personalData} = useProfileStore()
+  const {personalData} = useCVStore()
   const language = Intl.DateTimeFormat().resolvedOptions().locale; // Idioma del navegador
   const currentCvData: CurrentCvData = {
     personalData: personalData,    

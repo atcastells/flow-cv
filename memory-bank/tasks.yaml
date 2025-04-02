@@ -1,0 +1,181 @@
+tasks:
+  - id: refactor-cvapp-001
+    description: "Rename CVSidebarPreview.tsx to Sidebar.tsx (component, file, imports)"
+    status: "Pending"
+    priority: Medium
+    assigned_to: Code
+    created_date: "2025-04-02 12:36:00"
+    last_updated: "2025-04-02 12:36:00"
+    history:
+      - timestamp: "2025-04-02 12:36:00"
+        change: "Created by Refactor Manager based on approved strategy for CVApp.tsx refactoring."
+    related_feature: "CV Interaction"
+
+  - id: refactor-cvapp-002
+    description: "Extract layout logic from CVApp.tsx into a new AppLayout.tsx component"
+    status: "Pending"
+    priority: Medium
+    assigned_to: Code
+    created_date: "2025-04-02 12:36:00"
+    last_updated: "2025-04-02 12:36:00"
+    history:
+      - timestamp: "2025-04-02 12:36:00"
+        change: "Created by Refactor Manager based on approved strategy for CVApp.tsx refactoring."
+    related_feature: "CV Interaction"
+
+  - id: feat-chat-markdown-001
+    description: "Implement markdown rendering for chat messages within ChatContainer/ChatMessage"
+    status: "Completed"
+    priority: Medium
+    assigned_to: None
+    created_date: "2025-04-02 12:49:00"
+    last_updated: "2025-04-02 1:05:15"
+    history:
+      - timestamp: "2025-04-02 12:49:00"
+        change: "Created by CPO based on user request to enhance chat message display."
+      - timestamp: "2025-04-02 12:58:36"
+        change: "Planning complete by Architect. Approved approach: react-markdown + remark-gfm, basic code styling. Decomposed into subtasks."
+      - timestamp: "2025-04-02 1:05:15"
+        change: "Subtasks -sub-01 (implementation) and -sub-02 (styling) completed by Code mode. Feature complete."
+    related_feature: "Core Conversational Flow"
+
+  - id: feat-chat-markdown-001-sub-01
+    description: "Implement react-markdown with remark-gfm in src/features/cv/components/ChatMessage.tsx"
+    status: "Completed"
+    priority: Medium
+    assigned_to: Code
+    created_date: "2025-04-02 12:58:36"
+    last_updated: "2025-04-02 1:05:15"
+    history:
+      - timestamp: "2025-04-02 12:58:36"
+        change: "Created by Architect as subtask of feat-chat-markdown-001."
+      - timestamp: "2025-04-02 1:05:15"
+        change: "Completed by Code mode. Implemented ReactMarkdown with GFM plugin."
+    related_feature: "Core Conversational Flow"
+    delegated_from_task: feat-chat-markdown-001
+
+  - id: feat-chat-markdown-001-sub-02
+    description: "Apply Tailwind styling (via components prop or @tailwindcss/typography) to markdown elements in ChatMessage"
+    status: "Completed"
+    priority: Medium
+    assigned_to: Code
+    created_date: "2025-04-02 12:58:36"
+    last_updated: "2025-04-02 1:05:15"
+    history:
+      - timestamp: "2025-04-02 12:58:36"
+        change: "Created by Architect as subtask of feat-chat-markdown-001."
+      - timestamp: "2025-04-02 1:05:15"
+        change: "Completed by Code mode. Applied styling and safe link handling."
+    related_feature: "Core Conversational Flow"
+    delegated_from_task: feat-chat-markdown-001
+
+  - id: feat-chat-suggestions-001
+    description: "Implement dynamic chat suggestions (UI buttons for app actions & pre-filled chat inputs)"
+    status: "Planning Complete"
+    priority: High
+    assigned_to: Architect
+    created_date: "2025-04-02 13:40:15"
+    last_updated: "2025-04-02 13:50:37"
+    history:
+      - timestamp: "2025-04-02 13:40:15"
+        change: "Created by CPO based on user request to improve chat interaction with actionable suggestions."
+      - timestamp: "2025-04-02 13:50:37"
+        change: "Planning complete by Architect. Approved approach: LM tool, useChat hook update, ChatSuggestions component, ChatMessage integration, ChatWindow click handling. Decomposed into 7 subtasks."
+    related_feature: "Core Conversational Flow"
+
+  - id: feat-chat-suggestions-001-sub-01
+    description: "Define Suggestion interface and related types (e.g., in src/types/chat.ts)"
+    status: "Completed"
+    priority: High
+    assigned_to: None
+    created_date: "2025-04-02 13:50:37"
+    last_updated: "2025-04-02 14:12:33"
+    history:
+      - timestamp: "2025-04-02 13:50:37"
+        change: "Created by Architect as subtask of feat-chat-suggestions-001."
+      - timestamp: "2025-04-02 14:12:33"
+        change: "Completed by Code mode (verified by Architect). Types defined in src/features/ai/types/chat.ts."
+    related_feature: "Core Conversational Flow"
+    delegated_from_task: feat-chat-suggestions-001
+
+  - id: feat-chat-suggestions-001-sub-02
+    description: "Define LM tool 'provide_chat_suggestions' (schema, description) for generating suggestions"
+    status: "Completed"
+    priority: High
+    assigned_to: None
+    created_date: "2025-04-02 13:50:37"
+    last_updated: "2025-04-02 14:17:20"
+    history:
+      - timestamp: "2025-04-02 13:50:37"
+        change: "Created by Architect as subtask of feat-chat-suggestions-001."
+      - timestamp: "2025-04-02 14:17:20"
+        change: "Completed by Code mode (verified by Architect). LM tool 'provide_chat_suggestions' defined in src/features/ai/tools/provideChatSuggestionsTool.ts."
+    related_feature: "Core Conversational Flow"
+    delegated_from_task: feat-chat-suggestions-001
+
+  - id: feat-chat-suggestions-001-sub-03
+    description: "Update useChat hook (src/features/ai/hooks/useChat.ts) to handle 'provide_chat_suggestions' tool calls and store suggestions with messages"
+    status: "Completed"
+    priority: High
+    assigned_to: None
+    created_date: "2025-04-02 13:50:37"
+    last_updated: "2025-04-02 14:57:28"
+    history:
+      - timestamp: "2025-04-02 13:50:37"
+        change: "Created by Architect as subtask of feat-chat-suggestions-001."
+      - timestamp: "2025-04-02 14:57:28"
+        change: "Task delegation cancelled by user."
+    related_feature: "Core Conversational Flow"
+    delegated_from_task: feat-chat-suggestions-001
+
+  - id: feat-chat-suggestions-001-sub-04
+    description: "Create ChatSuggestions UI component (e.g., src/features/cv/components/ChatSuggestions.tsx) to render suggestions"
+    status: "Pending"
+    priority: Medium
+    assigned_to: None
+    created_date: "2025-04-02 13:50:37"
+    last_updated: "2025-04-02 13:50:37"
+    history:
+      - timestamp: "2025-04-02 13:50:37"
+        change: "Created by Architect as subtask of feat-chat-suggestions-001."
+    related_feature: "Core Conversational Flow"
+    delegated_from_task: feat-chat-suggestions-001
+
+  - id: feat-chat-suggestions-001-sub-05
+    description: "Integrate ChatSuggestions component into ChatMessage (src/features/cv/components/ChatMessage.tsx)"
+    status: "Pending"
+    priority: Medium
+    assigned_to: None
+    created_date: "2025-04-02 13:50:37"
+    last_updated: "2025-04-02 13:50:37"
+    history:
+      - timestamp: "2025-04-02 13:50:37"
+        change: "Created by Architect as subtask of feat-chat-suggestions-001."
+    related_feature: "Core Conversational Flow"
+    delegated_from_task: feat-chat-suggestions-001
+
+  - id: feat-chat-suggestions-001-sub-06
+    description: "Implement click handling logic for APP_ACTION suggestions (e.g., in ChatWindow or parent)"
+    status: "Pending"
+    priority: High
+    assigned_to: None
+    created_date: "2025-04-02 13:50:37"
+    last_updated: "2025-04-02 13:50:37"
+    history:
+      - timestamp: "2025-04-02 13:50:37"
+        change: "Created by Architect as subtask of feat-chat-suggestions-001."
+    related_feature: "Core Conversational Flow"
+    delegated_from_task: feat-chat-suggestions-001
+
+  - id: feat-chat-suggestions-001-sub-07
+    description: "Implement click handling logic for CHAT_PREFILL suggestions (e.g., in ChatWindow or parent)"
+    status: "Pending"
+    priority: High
+    assigned_to: None
+    created_date: "2025-04-02 13:50:37"
+    last_updated: "2025-04-02 13:50:37"
+    history:
+      - timestamp: "2025-04-02 13:50:37"
+        change: "Created by Architect as subtask of feat-chat-suggestions-001."
+    related_feature: "Core Conversational Flow"
+    delegated_from_task: feat-chat-suggestions-001

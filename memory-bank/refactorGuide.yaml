@@ -1,0 +1,98 @@
+# React Refactoring Best Practices
+# This file serves as a guide and checklist for the Refactor Manager mode.
+
+general_principles:
+  - name: Single Responsibility Principle (SRP)
+    description: "Components and hooks should ideally do one thing well. Complex components often benefit from being broken down."
+    check: "Does this component/hook handle multiple unrelated concerns (e.g., fetching data, managing form state, rendering complex UI)?"
+    action: "Extract distinct responsibilities into smaller, focused components or custom hooks."
+
+  - name: Don't Repeat Yourself (DRY)
+    description: "Avoid duplicating logic, UI structures, or constants. Abstract repeated patterns into reusable pieces."
+    check: "Is the same or very similar code (logic, JSX) present in multiple places?"
+    action: "Extract repeated logic into utility functions or custom hooks. Extract repeated JSX into reusable components."
+
+  - name: Readability & Maintainability
+    description: "Code should be easy to understand and modify. Use clear variable/function names, consistent formatting, and add comments where necessary for complex logic."
+    check: "Is the code difficult to follow? Are variable names unclear? Is formatting inconsistent?"
+    action: "Rename variables/functions for clarity. Simplify complex conditional logic or loops. Apply consistent formatting (use linters/formatters). Add comments explaining the 'why', not just the 'what'."
+
+component_refactoring:
+  - name: Component Extraction / Splitting
+    description: "Break down large, monolithic components into smaller, more manageable, and potentially reusable ones."
+    check: "Is the component file excessively long? Does it manage disparate pieces of state or handle many distinct UI sections?"
+    action: "Identify logical sub-sections or independent pieces of functionality; extract them into separate components."
+
+  - name: Prop Drilling Mitigation
+    description: "Avoid passing props through multiple intermediate components that don't use them."
+    check: "Are props being passed down 3+ levels without being used by intermediate components?"
+    action: "Consider using React Context API for global/themed state, state management libraries (Zustand, Redux, Jotai) for complex app state, or component composition (passing components as props, e.g., using `children`)."
+
+  - name: Conditional Rendering Optimization
+    description: "Make conditional rendering clear and efficient. Avoid overly complex inline logic."
+    check: "Are there deeply nested ternaries or complex logical expressions directly in JSX? Are components rendering unnecessarily based on conditions?"
+    action: "Use simple `&&` or ternary operators for basic cases. Extract complex conditional logic into variables or separate functions/components. Return `null` early for components that shouldn't render."
+
+  - name: Memoization (Components)
+    description: "Prevent unnecessary re-renders of components whose props haven't changed."
+    check: "Does profiling show a component re-rendering frequently even when its visual output shouldn't change? Is it receiving complex objects/functions as props that might change identity?"
+    action: "Wrap the component export with `React.memo`. Ensure props passed down are stable (use `useCallback`, `useMemo` in parent)."
+
+  - name: Remove Unnecessary Wrappers / Fragments
+    description: "Avoid adding extra DOM nodes if not needed for styling or structure."
+    check: "Are `div` elements used solely to wrap multiple adjacent JSX elements?"
+    action: "Replace unnecessary `div`s with React Fragments (`<>...</>`)."
+
+  - name: Key Prop Usage in Lists
+    description: "Provide stable and unique keys when rendering lists to help React identify items efficiently."
+    check: "Are lists rendered using `map`? Is a `key` prop provided? Is the key unique and stable (not based on index if list can reorder/change)?"
+    action: "Ensure each item in a mapped list has a unique `key` prop, preferably derived from stable data IDs."
+
+hook_and_logic_refactoring:
+  - name: Custom Hook Extraction
+    description: "Encapsulate reusable stateful logic, side effects, or context interactions into custom hooks."
+    check: "Is the same set of `useState`, `useEffect`, `useContext`, etc., logic repeated across multiple components? Is component logic becoming overly complex due to state management or side effects?"
+    action: "Create a custom hook (e.g., `useDataFetching`, `useFormState`, `useWindowSize`) to contain the related logic and return necessary values/functions."
+
+  - name: State Management Simplification
+    description: "Choose the appropriate state management approach. Consolidate related state."
+    check: "Are there many related `useState` calls that change together? Is state lifted unnecessarily high? Is global state needed?"
+    action: "Consider `useReducer` for complex related state within a component. Lift state only to the lowest common ancestor. Use Context or state libraries for global/shared state."
+
+  - name: Effect Optimization (`useEffect`)
+    description: "Ensure effects run only when necessary and are properly cleaned up."
+    check: "Is the dependency array missing, incomplete, or overly broad? Does the effect perform actions that need cleanup (subscriptions, timers)?"
+    action: "Provide accurate dependency arrays. Return a cleanup function from `useEffect` for subscriptions, timers, etc."
+
+  - name: Memoization (Values/Functions - `useMemo`, `useCallback`)
+    description: "Avoid re-calculating expensive values or creating new function instances on every render, especially when passed to memoized children."
+    check: "Are expensive calculations performed directly in the component body? Are functions defined inline passed as props to `React.memo`-wrapped components?"
+    action: "Wrap expensive calculations with `useMemo`. Wrap functions passed as props (especially event handlers) to memoized components with `useCallback`."
+
+code_quality_and_testing:
+  - name: Type Safety (TypeScript)
+    description: "Enhance type definitions for better maintainability and error prevention."
+    check: "Is `any` used frequently? Are prop types loosely defined? Are function return types implicit?"
+    action: "Replace `any` with specific types. Define clear interfaces/types for props and state. Add explicit return types to functions."
+
+  - name: Linting and Formatting Consistency
+    description: "Ensure code adheres to established project standards."
+    check: "Does the code violate configured ESLint or Prettier rules?"
+    action: "Run `eslint --fix` and `prettier --write` (or use IDE integrations) to automatically fix issues. Manually address remaining lint errors."
+
+  - name: Testing Strategy
+    description: "Ensure refactoring does not break existing functionality and that critical logic is covered."
+    check: "Does the code being refactored have corresponding tests? Will the refactoring require tests to be updated?"
+    action: "Run existing tests before and after refactoring. Update tests to match the new structure. Add tests for previously uncovered critical logic exposed during refactoring."
+
+performance:
+  - name: Profiling Before/After
+    description: "Use profiling tools to identify bottlenecks and verify improvements."
+    check: "Is there a perceived performance issue? Is the refactoring intended to improve performance?"
+    action: "Use the React DevTools Profiler to measure render times and identify costly components before making changes. Profile again after refactoring to confirm impact."
+
+  - name: Bundle Size Optimization
+    description: "Keep application bundle size in check."
+    check: "Is the refactoring introducing large new dependencies? Can parts of the application be loaded lazily?"
+    action: "Analyze bundle size (e.g., using `source-map-explorer`). Consider code splitting using `React.lazy` and dynamic `import()` for components/routes loaded conditionally or later."
+

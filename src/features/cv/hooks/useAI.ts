@@ -6,11 +6,11 @@ import type { ChatCompletionRequest, ChatCompletionResponseMessage, Message, Too
 import { OpenRouterService } from '../services/aiService';
 import { savePersonalInfoTool } from '../tools/savePersonalInfoTool';
 import { saveSkillsTool } from '../tools/saveSkillsTool';
+import { saveCVInfoTool } from '../tools/saveCVInfoTool';
 
 // Define available tools
-const availableTools: { [key: string]: (args: unknown) => Promise<object> } = {
-  save_personal_info: savePersonalInfoTool as (args: unknown) => Promise<object>,
-  save_skills: saveSkillsTool as (args: unknown) => Promise<object>,
+const availableTools: { [key: string]: (args: unknown) => Promise<object> } = {  
+  save_cv_info: saveCVInfoTool as (args: unknown) => Promise<object>,
 };
 
 interface UseAIOptions {

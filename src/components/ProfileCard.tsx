@@ -1,4 +1,4 @@
-import { useProfileStore } from '@/features/store';
+import { useCVStore } from '@/features/store/CVStore';
 import React, { useState } from 'react';
 import { Input } from './ui/input';
 import { Button } from './ui/button'; // Import Button
@@ -8,8 +8,8 @@ interface ProfileCardProps {
 }
 
 const ProfileCard: React.FC<ProfileCardProps> = ({ onProfileSave }) => {
-    const personalData = useProfileStore((state) => state.personalData);
-    const setPersonalData = useProfileStore((state) => state.setPersonalData);
+    const personalData = useCVStore((state) => state.personalData);
+    const setPersonalData = useCVStore((state) => state.setPersonalData);
 
   const handleSave = () => {
     console.log('Profile Saved');

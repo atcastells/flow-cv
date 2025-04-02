@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useChat } from "@/features/ai/hooks";
 import type { ContentPart, ImageUrlPart, Message, TextPart } from "@/features/ai/service";
 import { OpenRouterService } from "@/features/ai/service";
-import { useChatStore, useEducationStore, useExperienceStore, useProfileStore, useSkillsStore } from "@/features/store";
+import { useChatStore, useEducationStore, useExperienceStore, useCVStore, useSkillsStore } from "@/features/store/CVStore";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -72,7 +72,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ className, onOpenModal }) => {
     });
   };
 
-  const profileStore = useProfileStore();
+  const profileStore = useCVStore();
   const personalData = profileStore?.personalData || {};
   const messagesEndRef = useRef<HTMLDivElement>(null);
 

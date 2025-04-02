@@ -1,19 +1,20 @@
-import React, { useEffect, useRef, useState, useMemo } from "react";
-import ChatMessage from "./ChatMessage";
-import InputArea from "./InputArea";
-import { cn } from "@/lib/utils";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Button } from "@/components/ui/button";
-import { FileText, Trash2, X, Image, Paperclip } from "lucide-react";
 import { useChat } from "@/features/ai/hooks";
-import { OpenRouterService } from "@/features/ai/service";
 import type { ContentPart, ImageUrlPart, Message, TextPart } from "@/features/ai/service";
-import { useProfileStore, useEducationStore, useExperienceStore, useSkillsStore, useChatStore } from "@/features/store";
-import CVPreview from "./CVPreview";
+import { OpenRouterService } from "@/features/ai/service";
+import { useChatStore, useEducationStore, useExperienceStore, useProfileStore, useSkillsStore } from "@/features/store";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
+import { FileText, Image, Paperclip, Trash2, X } from "lucide-react";
 import * as pdfjsLib from 'pdfjs-dist';
 import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import { TextItem } from "pdfjs-dist/types/src/display/api";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import ChatMessage from "./ChatMessage";
+import CVPreview from "./CVPreview";
+import InputArea from "./InputArea";
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
 
 interface AttachmentInfo {

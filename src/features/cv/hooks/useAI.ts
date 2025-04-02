@@ -1,84 +1,49 @@
 import { useToast } from '@/hooks/use-toast';
 import { useCallback, useMemo, useState } from 'react';
-import { useChatStore } from '../store/chatStore';
-import { useSystemPrompt } from './prompts/useSystemPrompt';
-import type { ChatCompletionRequest, ChatCompletionResponseMessage, Message, ToolCall } from './service';
-import { OpenRouterService } from './service';
-import { savePersonalInfoTool } from './tools/savePersonalInfoTool';
-import { saveSkillsTool } from './tools/saveSkillsTool';
+import { useChatStore } from '../../store/chatStore';
+import { useSystemPrompt } from '../prompts/useSystemPrompt';
+import type { ChatCompletionRequest, ChatCompletionResponseMessage, Message, ToolCall } from '../services/aiService';
+import { OpenRouterService } from '../services/aiService';
+import { savePersonalInfoTool } from '../tools/savePersonalInfoTool';
+import { saveSkillsTool } from '../tools/saveSkillsTool';
 
-// We use a mapped type with unknown arguments since each tool has different argument types
+// Define available tools
 const availableTools: { [key: string]: (args: unknown) => Promise<object> } = {
   save_personal_info: savePersonalInfoTool as (args: unknown) => Promise<object>,
   save_skills: saveSkillsTool as (args: unknown) => Promise<object>,
 };
 
-export type QuickAction = 'SHOW_PROFILE' | 'SHOW_SKILLS' | 'SHOW_EXPERIENCE' | 'PREVIEW_CV';
-
-interface UseChatOptions {
+interface UseAIOptions {
+  addMessage: (text: string, sender: 'user' | 'bot' | 'system', suggestions?: string[] | null) => void;
   apiKey: string;
   model?: string;
 }
 
-export function useChat({ apiKey, model }: UseChatOptions) {
-  const messages = useChatStore((state) => state.messages);
-  const addMessage = useChatStore((state) => state.addMessage);
-  const addMessages = useChatStore((state) => state.addMessages);
-  const clearStoreMessages = useChatStore((state) => state.clearMessages);
-  const deleteMessage = useChatStore((state) => state.deleteMessage);
-
-  const [isLoading, setIsLoading] = useState(false);
+export function useAI({ addMessage, apiKey, model }: UseAIOptions) {
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const storeMessages = useChatStore((state) => state.messages);
+  const addStoreMessage = useChatStore((state) => state.addMessage);
+  const addStoreMessages = useChatStore((state) => state.addMessages);
   const { systemPromptString, toolDefinitions } = useSystemPrompt();
-
-  const handleQuickAction = useCallback((action: QuickAction) => {
-    const { addMessage: _addMessage } = useChatStore.getState();
-
-    switch (action) {
-      case 'SHOW_PROFILE': {
-        _addMessage({
-          id: `quick-action-${Date.now()}`,
-          role: 'assistant',
-          content: 'ProfileCardWithData',
-          isLocal: true
-        });
-        break;
-      }
-      case 'SHOW_SKILLS': {        
-        _addMessage({
-          id: `quick-action-${Date.now()}`,
-          role: 'assistant',
-          content: 'SkillsCardWithData',
-          isLocal: true
-        });
-        break;
-      }
-      default:
-        console.warn(`Unhandled quick action: ${action}`);
-        toast({
-          title: 'Warning',
-          description: `Acción rápida "${action}" no implementada.`,
-          variant: 'default'
-        });
-    }
-  }, [toast]);
-
+  
+  // Initialize the OpenRouter service
   const service = useMemo(() => {
     const effectiveModel = model || 'google/gemini-flash-1.5';
     if (!apiKey || !effectiveModel) return null;
     console.log(`Initializing OpenRouterService with model: ${effectiveModel}`);
     return new OpenRouterService(apiKey, effectiveModel);
   }, [apiKey, model]);
-
+  
   const processChatTurn = useCallback(async (messagesForApi: Message[]) => {
-    const { addMessage: _addMessage, addMessages: _addMessages } = useChatStore.getState();
-
     if (!service || !systemPromptString) {
       toast({ title: 'Error', description: 'Chat service not initialized.', variant: 'destructive' });
       setIsLoading(false);
       return;
     }
     if(!isLoading) setIsLoading(true);
+
+    console.log("Processing chat turn with messages:", messagesForApi);
 
     try {
       const request: ChatCompletionRequest = {
@@ -101,7 +66,13 @@ export function useChat({ apiKey, model }: UseChatOptions) {
       const assistantMessage = response.choices[0].message as ChatCompletionResponseMessage;
       if (!assistantMessage.role) assistantMessage.role = 'assistant';
 
-      _addMessage(assistantMessage);
+      // Add the assistant's message to the store
+      addStoreMessage(assistantMessage);
+      
+      // Add the message to the UI if it's text content
+      if (typeof assistantMessage.content === 'string') {
+        addMessage(assistantMessage.content, 'bot');
+      }
 
       if (assistantMessage.tool_calls && assistantMessage.tool_calls.length > 0) {
         console.log("Handling tool calls:", assistantMessage.tool_calls);
@@ -151,7 +122,7 @@ export function useChat({ apiKey, model }: UseChatOptions) {
 
         if (resolvedToolResults.length > 0) {
           console.log("Adding tool results to messages:", resolvedToolResults);
-          _addMessages(resolvedToolResults);
+          addStoreMessages(resolvedToolResults);
           const currentMessages = useChatStore.getState().messages;
           await processChatTurn(currentMessages.slice(-20));
         } else {
@@ -176,54 +147,43 @@ export function useChat({ apiKey, model }: UseChatOptions) {
       toast({ title: 'Chat Error', description: `Failed to get response: ${errorMessage}`, variant: 'destructive' });
       setIsLoading(false);
     }
-  }, [service, systemPromptString, toolDefinitions, toast, isLoading]);
+  }, [service, systemPromptString, toolDefinitions, toast, isLoading, addStoreMessage, addStoreMessages, addMessage]);
+  
+  const sendUserMessageToAI = useCallback(
+    (userMessage: string) => {
+      // First, display the message in the UI
+      addMessage(userMessage, 'user');
+      
+      // Then add it to the chat store for AI processing
+      const message: Message = {
+        role: 'user',
+        content: userMessage
+      };
+      addStoreMessage(message);
 
-  const sendMessage = useCallback(
-    async (message: Message) => {
-      const { addMessage: _addMessage } = useChatStore.getState();
+      console.log("Sending user message to AI:", userMessage);
+      
+      // Process the message with the AI
       const currentMessages = useChatStore.getState().messages;
-
-      if (message.role !== 'user') { console.warn("Non-user message passed to sendMessage"); return; }
-      if (typeof message.content !== 'string' && !Array.isArray(message.content)) { return; }
-      if (Array.isArray(message.content) && message.content.length === 0) { return; }
-
-      const historyForAPI = [...currentMessages, message];
-      const limitedHistory = historyForAPI.slice(-20);
-
-      _addMessage(message);
-
-      try {
-        await processChatTurn(limitedHistory);
-      } catch (error) {
-        console.error("Error initiating chat processing:", error);
-        toast({
-          title: 'Error',
-          description: `Failed to send message: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          variant: 'destructive'
-        });
-        setIsLoading(false);
-      }
+      const limitedHistory = currentMessages.slice(-20);
+      processChatTurn(limitedHistory);
     },
-    [processChatTurn, toast]
+    [addMessage, addStoreMessage, processChatTurn]
   );
-
-  const clearMessages = useCallback(() => {
-    const { clearMessages: _clearMessages } = useChatStore.getState();
-    _clearMessages();
-  }, []);
-
-  // Add handleDeleteMessage function
-  const handleDeleteMessage = useCallback((id: string) => {
-    const { deleteMessage: _deleteMessage } = useChatStore.getState();
-    _deleteMessage(id);
-  }, []);
+  
+  // Function to sync chat store messages to UI
+  const syncMessagesToUI = useCallback(() => {
+    // Get messages from store and convert them to the format expected by the CV chat
+    storeMessages.forEach(message => {
+      if (message.role === 'assistant' && typeof message.content === 'string') {
+        addMessage(message.content, 'bot');
+      }
+    });
+  }, [storeMessages, addMessage]);
 
   return {
-    messages,
-    isLoading,
-    sendMessage,
-    clearMessages,
-    handleQuickAction,
-    handleDeleteMessage, // Export the delete handler
+    sendUserMessageToAI,
+    syncMessagesToUI,
+    isLoading
   };
-}
+} 

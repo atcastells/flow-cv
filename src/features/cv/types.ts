@@ -33,6 +33,7 @@ export interface Message {
   sender: 'user' | 'bot' | 'system';
   suggestions: string[] | null;
   suggestionsUsed: boolean;
+  uiComponents?: { type: string; props: any }[];
 }
 
 export interface SectionTitleProps {

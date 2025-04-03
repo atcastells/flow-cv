@@ -40,7 +40,7 @@ export const CVApp = () => {
     clearMessages
   } = useChat();
 
-  const { sendUserMessageToAI, isLoading } = useAI({ 
+  const { sendUserMessageToAI, isLoading, handleSkillSelection } = useAI({ 
     addMessage,
     apiKey: API_KEY,
     model: selectedModel
@@ -110,7 +110,7 @@ export const CVApp = () => {
 
       {/* Chat Container */}
       <div className="flex-1 flex flex-col min-w-0">
-        <div className="flex items-center justify-center flex-1 p-2 sm:p-4">
+        <div className="flex items-center justify-center flex-1 p-0 md:p-4">
           <ChatContainer
             messages={messages}
             inputValue={inputValue}
@@ -129,6 +129,7 @@ export const CVApp = () => {
                 onSelectModel={handleModelSelect}
               />
             }
+            handleSkillSelection={handleSkillSelection}
           />
         </div>
       </div>

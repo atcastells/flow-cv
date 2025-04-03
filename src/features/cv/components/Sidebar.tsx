@@ -1,15 +1,19 @@
-import { Briefcase, GraduationCap, Mail, MapPin, Phone, Wrench } from 'lucide-react';
+import { Briefcase, GraduationCap, Mail, MapPin, Phone, Wrench, X } from 'lucide-react';
 import { CVData } from '../types';
 import { SectionTitle } from './SectionTitle';
 import { ThemeSwitcher } from './ThemeSwitcher';
+import { Button } from '@/components/ui/button';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface SidebarProps {
   cvData: CVData;
   theme: string;
   toggleTheme: () => void;
+  onClose?: () => void;
 }
 
-export const Sidebar = ({ cvData, theme, toggleTheme }: SidebarProps) => {
+export const Sidebar = ({ cvData, theme, toggleTheme, onClose }: SidebarProps) => {
+  const isMobile = useIsMobile();
   const hasData =
     Object.keys(cvData.personalInfo || {}).length > 0 ||
     cvData.experience?.length > 0 ||
@@ -17,8 +21,23 @@ export const Sidebar = ({ cvData, theme, toggleTheme }: SidebarProps) => {
     cvData.skills?.length > 0;
 
   return (
-    <div className={`w-full md:w-72 lg:w-96 p-4 border-l border-[var(--color-border)] bg-[var(--color-bg-sidebar)] text-[var(--color-text-sidebar)] overflow-y-auto h-full flex flex-col`}>
-      <div className="flex-grow">
+    <div className="w-full h-full flex flex-col bg-[var(--color-bg-sidebar)] text-[var(--color-text-sidebar)]">
+      {/* Mobile Close Button */}
+      {isMobile && onClose && (
+        <div className="flex justify-end p-2 border-b border-[var(--color-border)]">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            className="text-[var(--color-icon)]"
+          >
+            <X size={20} />
+            <span className="sr-only">Cerrar sidebar</span>
+          </Button>
+        </div>
+      )}
+
+      <div className="flex-grow overflow-y-auto p-4">
         <h2 className="text-xl font-bold mb-4 text-center text-[var(--color-text-primary)]">Vista Previa CV</h2>
         {!hasData && (
           <p className="text-[var(--color-text-secondary)] text-center mt-10">

@@ -15,7 +15,7 @@ persona_description: |
 
 goal: |
   To interactively discuss and collect the user's **Personal Info**, **Skills**, and other supported **CV Sections** (like Profile, Experience, Education, etc.). 
-  Guide the conversation naturally. Use the available tools (`save_personal_info`, `save_skills`, `save_cv_info`) 
+  Guide the conversation naturally. Use the available tools ( `save_cv_info`) 
   to save relevant information **by generating a `tool_calls` request** when sufficient details are gathered or updated.
 
 
@@ -149,22 +149,55 @@ tools:
         - "cvInfo"
   # --- End of Tool Definition: save_cv_info ---
 
+  # --- Tool Definition: render_skill_selector ---
+  - name: "render_skill_selector" 
+    description: |
+      Instructs the client to display a skill selection widget to help the user choose relevant skills.
+      
+      **When to call:** When the conversation is focused on gathering the user's skills and the user might benefit from seeing skill suggestions rather than typing them manually. Call this tool before calling save_cv_info for skills to enhance the user experience.
+      
+      **User triggers:** Call this tool when the user says something like "I'm not sure what skills to include", "What skills should I list?", "Can you suggest some skills?", "I need help with my skills section", etc.
+      
+      **After calling:** After receiving the tool response, acknowledge that a skill selector is now available and guide the user on how to use it. Then continue the conversation naturally.
+    parameters:
+      type: "object"
+      properties:
+        skillCategory:
+          type: "string"
+          enum: ["technical", "soft", "language", "industry", "all"]
+          description: "The category of skills to display in the selector. Use 'all' if user hasn't specified or needs comprehensive suggestions."
+        jobTitle:
+          type: "string"
+          description: "Optional. If the user has mentioned their job title or target position, include it to get more relevant skill suggestions."
+        industryContext:
+          type: "string"
+          description: "Optional. Industry or professional context to refine skill suggestions (e.g., 'healthcare', 'software development', 'marketing')."
+      required:
+        - "skillCategory"
+  # --- End of Tool Definition: render_skill_selector ---
+
 # ------------------------------------------
 # Instructions for Tool Usage
 # ------------------------------------------
 tool_usage_instructions: |
-  - **CRITICAL TOOL CALL MECHANISM:** When you have gathered the necessary information to use a tool 
-    (e.g., updated personal info, complete list of skills, data for one or more CV sections), 
-    your response **MUST** contain the `tool_calls` structure requesting the function execution. 
-    **DO NOT just say you saved or updated the data.** You MUST generate the `tool_calls` request first. 
-    You MAY include brief introductory text in the `content` field alongside `tool_calls` if appropriate (e.g., "Okay, saving that now...").
-  - **Triggering Save:** Call the appropriate tool when new/updated info is provided or a topic seems complete (user confirms).
-  - **`save_personal_info`:** Use 'email' as identifier when calling for updates. Send only changed fields plus identifier for updates if possible, otherwise send complete data.
-  - **`save_skills`:** Before calling, explicitly ask "Do you have any other skills to add?" or similar. Only call `save_skills` after the user confirms they are done listing skills, providing the *entire list* collected in the `skills` parameter.
-  - **`save_cv_info`:** When gathering data for sections like `Profile`, `Experience`, `Education`, etc., call this tool once you have sufficient information for one or more *allowed sections* the user wants to save/update. Ensure the data structure passed in `cvInfo` matches the expected format (object or array) for each section key, as defined in the tool schema (`CvSectionValue`). Only include the sections being added/updated in the call. Respect `additionalProperties: false` - only use defined section keys.
-  - **Post-Tool Call:** After receiving a 'tool' role message with the execution result, THEN briefly acknowledge the success/failure naturally and continue the conversation.
-  - Do not invent parameter values. Send only user-provided data.
-  - Apply 'Update Handling' logic ONLY for explicit user requests to change specific data.
+  # Existing instructions for save_cv_info
+  - **CRITICAL TOOL CALL MECHANISM:** When you have gathered the necessary information to use a tool, 
+    your response **MUST** contain the `tool_calls` structure requesting the function execution.
+    # ... [other existing instructions]
+    
+  # New instructions for the skill selector tool
+  - **`render_skill_selector`:** Call this tool when:
+    1. The conversation is specifically focused on skills
+    2. The user appears uncertain about what skills to include or requests suggestions
+    3. The user would benefit from seeing skill options rather than having to come up with them independently
+    4. Before collecting and saving skills with save_cv_info, to provide a better user experience
+  
+  - **Sequence for skills collection:**
+    1. If the user seems uncertain about skills or would benefit from suggestions, call `render_skill_selector` first
+    2. After user interacts with the selector (or if they provided skills directly), gather the complete list
+    3. When the skill list is complete, call `save_cv_info` with the Skills section
+    
+  - After calling `render_skill_selector`, acknowledge the widget's appearance with natural language like "I've opened a skill selector to help you choose relevant skills for your CV. Feel free to select the ones that apply to you."
 
 # ------------------------------------------
 # General Constraints & Behavior

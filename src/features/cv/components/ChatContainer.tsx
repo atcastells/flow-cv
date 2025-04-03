@@ -19,6 +19,7 @@ interface ChatContainerProps {
   onClearChat?: () => void;
   onSendPredefinedMessage?: (message: string) => void;
   modelSelector?: React.ReactNode;
+  handleSkillSelection: (skills: string[], toolCallId: string) => void;
 }
 
 export const ChatContainer = ({
@@ -32,7 +33,8 @@ export const ChatContainer = ({
   isLoading = false,
   onClearChat,
   onSendPredefinedMessage,
-  modelSelector
+  modelSelector,
+  handleSkillSelection
 }: ChatContainerProps) => {
   
   const handleSendPredefinedMessage = (message: string) => {
@@ -47,34 +49,22 @@ export const ChatContainer = ({
   };
 
   return (
-    <Card className="w-full max-w-4xl h-full flex flex-col border-[var(--color-border)] bg-[var(--color-bg-card)]">
-      <CardHeader className="bg-[var(--color-primary)] text-[var(--color-text-on-primary)] rounded-t-lg flex-row items-center justify-between border-b border-[var(--color-border)]">
+    <Card className="w-full h-[100vh] md:h-[95vh] md:max-w-3xl rounded-none md:rounded-lg flex flex-col border-[var(--color-border)] bg-[var(--color-bg-card)] overflow-hidden">
+      <CardHeader className="bg-[var(--color-primary)] text-[var(--color-text-on-primary)] rounded-none md:rounded-t-lg flex-row items-center justify-between border-b border-[var(--color-border)]">
         <div className="flex items-center">
           <MessageCircle className="w-6 h-6 mr-2 text-[var(--color-icon-on-primary)]" />
           <CardTitle>Asistente de CV</CardTitle>
         </div>
         <div className="flex items-center gap-2">
           {modelSelector}
-          {onClearChat && messages.length > 0 && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onClearChat}
-              title="Limpiar chat"
-              className="text-[var(--color-icon-on-primary)] hover:bg-[var(--color-primary-hover)]"
-            >
-              <Trash2 className="w-5 h-5" />
-              <span className="sr-only">Limpiar chat</span>
-            </Button>
-          )}
         </div>
       </CardHeader>
 
-      <CardContent ref={chatContainerRef} className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-4 bg-[var(--color-bg-card)] text-[var(--color-text-primary)]">
+      <CardContent ref={chatContainerRef} className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-4 bg-[var(--color-bg-card)] text-[var(--color-text-primary)] overflow-x-hidden">
         {messages.length > 0 ? (
           <>
             {messages.map((message) => (
-              <ChatMessage key={message.id} message={message} />
+              <ChatMessage key={message.id} message={message} onSkillSelect={handleSkillSelection} />
             ))}
             <div ref={messagesEndRef} />
           </>
@@ -89,6 +79,8 @@ export const ChatContainer = ({
         onKeyPress={handleKeyPress}
         onSend={handleSendMessage}
         isLoading={isLoading}
+        onClearChat={onClearChat}
+        messageCount={messages.length}
       />
     </Card>
   );

@@ -1,6 +1,6 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import React, { useEffect, useState } from 'react';
-import { OpenRouterService } from '../services/aiService';
+import { LLMService } from '../services/aiService';
 
 // Define ModelInfo interface since it's not exported from aiService
 interface ModelInfo {
@@ -35,7 +35,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
       setError(null);
 
       try {
-        const service = new OpenRouterService(apiKey, '');
+        const service = new LLMService(apiKey, '');
         const availableModels = await service.getAvailableModels();
         setModels(availableModels);
       } catch (err) {
@@ -63,7 +63,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
         <SelectContent>
           {models.map((model) => (
             <SelectItem key={model.id} value={model.id}>
-              {model.name.split('/').pop()}
+              {model.id}
             </SelectItem>
           ))}
           {error && (

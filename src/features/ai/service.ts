@@ -45,6 +45,8 @@ export interface Message {
   tool_call_id?: string; // Required for tool role messages to match the call ID
   isLocal?: boolean; // Indicates if the message is local (not from the API)
   id?: string; // Optional: Unique ID for the message
+  uiComponent?: { type: string; props: any }; // Optional: For rendering special UI components
+  suggestions?: string[]; // Optional: Suggestions for the user
   // REMOVED 'files?: File[]' - This is NOT the standard way to send files via API.
   // File data MUST be converted to Base64 Data URI and included in the 'content' array.
 }
@@ -89,6 +91,8 @@ export interface ChatCompletionResponse {
 // --- Service Implementation ---
 
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
+const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
+const LMStudio_API_URL = 'http://127.0.0.1:1234/v1/chat/completions';
 
 interface ModelInfo {
   id: string;
@@ -110,14 +114,16 @@ export class OpenRouterService {
     console.log(`OpenRouterService initialized with model: ${this.defaultModel}`);
   }
 
-  async getAvailableModels(): Promise<ModelInfo[]> {
+  async getAvailableModels(): Promise<any[]> {
 
       try {
-          const response = await axios.get<{ data: ModelInfo[] }>('https://openrouter.ai/api/v1/models', {
+          const response = await axios.get<{ data }>(GROQ_API_URL, {
               headers: { /* ... headers ... */ }
           });
-          return response.data.data.filter((model) => { 
-              return model.name.includes('free')
+
+          const models = response.data.data;  
+          return models.filter((model) => { 
+              return model
            });
       } catch (error) {
           // Your error handling...

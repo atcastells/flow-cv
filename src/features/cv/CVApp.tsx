@@ -1,26 +1,33 @@
 import { Button } from '@/components/ui/button';
 import { Menu, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useChatStore } from '../../features/store/chatStore';
+import type { Message as StoreMessage } from '../../features/ai/service';
 import { ChatContainer } from './components/ChatContainer';
 import { CVSidebarPreview } from './components/CVSidebarPreview';
 import { ModelSelector } from './components/ModelSelector';
 import { useAI } from './hooks/useAI';
-import { useChat } from './hooks/useChat';
 import { useCV } from './hooks/useCV';
 import { useTheme } from './hooks/useTheme';
+import type { Message as UIMessage } from './types';
 import './styles.css';
 
 // For demonstration purposes - in a real app, this would come from env variables or user settings
-const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || '';
+const API_KEY = import.meta.env.VITE_GROQ_API_KEY || '';
 const DEFAULT_MODEL = 'google/gemini-2.0-flash-exp:free';
 
 export const CVApp = () => {
   const { theme, toggleTheme } = useTheme();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedModel, setSelectedModel] = useState(DEFAULT_MODEL);
+  
+  // Get messages and clear function directly from the store
+  const storeMessages = useChatStore((state) => state.messages);
   const clearStoreMessages = useChatStore((state) => state.clearMessages);
   
+  // Manage input value locally
+  const [inputValue, setInputValue] = useState('');
+
   const { 
     cvData, 
     updatePersonalInfo, 
@@ -30,36 +37,66 @@ export const CVApp = () => {
   } = useCV();
   
   const { 
-    messages, 
-    inputValue, 
-    setInputValue, 
-    handleKeyPress, 
-    messagesEndRef,
-    chatContainerRef,
-    addMessage,
-    clearMessages
-  } = useChat();
-
-  const { sendUserMessageToAI, isLoading, handleSkillSelection } = useAI({ 
-    addMessage,
+    sendUserMessageToAI, 
+    isLoading, 
+    handleSkillSelection,
+  } = useAI({ 
     apiKey: API_KEY,
-    model: selectedModel
+    model: selectedModel,
   });
+
+  // --- Message Mapping --- 
+  const uiMessages = useMemo(() => {
+    return storeMessages
+      .filter(msg => msg.role !== 'system' ) // Filter out system/tool messages for display
+      .map((msg: StoreMessage, index: number): UIMessage => {
+        let textContent = '';
+        if (typeof msg.content === 'string') {
+          textContent = msg.content;
+        } else if (Array.isArray(msg.content)) {
+          // Handle potential array content (e.g., multimodal text parts)
+          textContent = msg.content
+            .filter(part => part.type === 'text')
+            .map(part => (part as { type: 'text'; text: string }).text)
+            .join('\n');
+        }
+
+        
+
+        // Map role to sender
+        const sender: UIMessage['sender'] = msg.role === 'assistant' ? 'bot' : msg.role === 'user' ? 'user' : 'system';
+        
+        // Extract UI component if present
+        const uiComponents = msg.uiComponent ? [msg.uiComponent] : undefined;
+        
+        return {
+          // Use message ID from store if available, otherwise generate a temporary one (consider stability)
+          // The store's ensureMessageId should provide a stable crypto.randomUUID()
+          id: msg.id ? Number.parseInt(msg.id, 16) : Date.now() + index, // Attempt to use store ID, fallback needs improvement
+          text: textContent,
+          sender: sender,
+          suggestions: msg.suggestions, // TODO: Add suggestion handling if needed
+          suggestionsUsed: false,
+          uiComponents: uiComponents,
+        };
+      });
+  }, [storeMessages]);
+  // --- End Message Mapping ---
+
+  // Wrapper function to handle sending message from ChatContainer
+  const handleSend = (value: string) => {
+    const trimmedInput = value.trim();
+    console.log('trimmedInput', trimmedInput);
+    if (trimmedInput) {
+      sendUserMessageToAI(trimmedInput);
+      setInputValue(''); // Clear input after sending
+    }
+  };
 
   // Handle model selection
   const handleModelSelect = (modelId: string) => {
     console.log(`Model changed from ${selectedModel} to ${modelId}`);
     setSelectedModel(modelId);
-  };
-
-  // Override handleSendMessage to use the AI hook
-  const handleSendMessage = () => {
-    const trimmedInput = inputValue.trim();
-    if (trimmedInput) {
-      console.log('handleSendMessage called with input:', trimmedInput);
-      sendUserMessageToAI(trimmedInput);
-      setInputValue('');
-    }
   };
 
   // Direct method to send predefined messages
@@ -68,22 +105,13 @@ export const CVApp = () => {
     sendUserMessageToAI(message);
   };
 
-  // Clear chat
+  // Clear chat - simplified to only clear the store
   const clearChat = () => {
-    // Clear UI messages
-    clearMessages();
-    // Clear store messages
     clearStoreMessages();
+    console.log('Chat store cleared.');
   };
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
-
-  // Auto-open sidebar on mobile when user starts adding content
-  useEffect(() => {
-    if (messages.length > 2 && window.innerWidth < 768 && !isSidebarOpen) {
-      setIsSidebarOpen(true);
-    }
-  }, [messages.length, isSidebarOpen]);
 
   return (
     <div className={`flex h-screen bg-[var(--color-bg-main)] font-sans`}>
@@ -96,8 +124,7 @@ export const CVApp = () => {
       >
         {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
         <span className="sr-only">Mostrar/Ocultar Resumen</span>
-      </Button>
-
+      </Button>    
       {/* CV Preview Sidebar */}
       <div
         className={`
@@ -111,14 +138,11 @@ export const CVApp = () => {
       {/* Chat Container */}
       <div className="flex-1 flex flex-col min-w-0">
         <div className="flex items-center justify-center flex-1 p-0 md:p-4">
-          <ChatContainer
-            messages={messages}
+          <ChatContainer  
+            messages={uiMessages}
             inputValue={inputValue}
             setInputValue={setInputValue}
-            handleSendMessage={handleSendMessage}
-            handleKeyPress={handleKeyPress}
-            messagesEndRef={messagesEndRef}
-            chatContainerRef={chatContainerRef}
+            handleSendMessage={handleSend}
             isLoading={isLoading}
             onClearChat={clearChat}
             onSendPredefinedMessage={handleSendPredefinedMessage}

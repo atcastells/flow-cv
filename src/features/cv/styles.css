@@ -1,25 +1,33 @@
 :root {
   /* Light Theme Variables */
-  --color-bg-main: #f9fafb;
-  --color-bg-card: #ffffff;
-  --color-bg-input: #ffffff;
-  --color-bg-sidebar: #e9f4ef;
-  --color-text-primary: #1f2937;
-  --color-text-secondary: #6b7280;
-  --color-text-sidebar: #172d24;
-  --color-border: #e5e7eb;
-  --color-primary: #91c7b1;
-  --color-primary-hover: #62b090;
-  --color-secondary: #e0bad7;
-  --color-accent-user: #da4167;
-  --color-accent-user-hover: #bb254b;
-  --color-accent-bot: #d2e8e0;
-  --color-highlight: #fac748;
-  --color-text-on-primary: #172d24;
-  --color-text-on-accent-user: #ffffff;
-  --color-text-on-accent-bot: #172d24;
-  --color-icon: #394648;
-  --color-icon-on-primary: #ffffff;
+  --color-bg-main: #f9fafb;        /* Main background */
+  --color-bg-card: #ffffff;        /* Card/container background */
+  --color-bg-input: #ffffff;        /* Input field background */
+  --color-bg-sidebar: #e9f4ef;      /* Sidebar background */
+  --color-bg-system: #f3f4f6;      /* NEW: System message background (subtle gray) */
+
+  --color-text-primary: #1f2937;    /* Primary text (most text) */
+  --color-text-secondary: #6b7280;  /* Secondary text (less important text) */
+  --color-text-sidebar: #172d24;    /* Sidebar text */
+  --color-text-system: #4b5563;     /* NEW: System message text (slightly stronger than secondary) */
+  --color-text-on-primary: #172d24; /* Text on primary-colored backgrounds */
+  --color-text-on-accent-user: #ffffff; /* Text on user accent backgrounds */
+  --color-text-on-accent-bot: #172d24;  /* Text on bot accent backgrounds */
+
+  --color-border: #e5e7eb;        /* Default border color */
+  --color-border-system: #d1d5db; /* NEW: System message border (optional) */
+
+  --color-primary: #91c7b1;        /* Primary action/highlight color */
+  --color-primary-hover: #62b090;   /* Hover state for primary color */
+  --color-secondary: #e0bad7;      /* Secondary accent color */
+  --color-accent-user: #da4167;     /* User message background/accent */
+  --color-accent-user-hover: #bb254b; /* Hover state for user elements */
+  --color-accent-bot: #d2e8e0;      /* Bot message background/accent */
+  --color-highlight: #fac748;      /* General highlight (e.g., search results) */
+
+  --color-icon: #394648;          /* Default icon color */
+  --color-icon-on-primary: #ffffff; /* Icon color on primary backgrounds */
+  --color-icon-system: #6b7280;    /* NEW: Icon color for system messages (optional) */
 }
 
 .dark {
@@ -28,20 +36,59 @@
   --color-bg-card: #161c1d;
   --color-bg-input: #222a2b;
   --color-bg-sidebar: #161c1d;
+  --color-bg-system: #1f2937;      /* NEW: System message background (darker neutral) */
+
   --color-text-primary: #d4dcdd;
   --color-text-secondary: #a9b9bc;
   --color-text-sidebar: #d4dcdd;
+  --color-text-system: #b0bec5;     /* NEW: System message text (clear but not primary) */
+  --color-text-on-primary: #172d24;
+  --color-text-on-accent-user: #ffffff;
+  --color-text-on-accent-bot: #d4dcdd;
+
   --color-border: #2d3739;
+  --color-border-system: #374151; /* NEW: System message border (optional) */
+
   --color-primary: #91c7b1;
   --color-primary-hover: #a5d2c0;
   --color-secondary: #e0bad7;
   --color-accent-user: #e16684;
   --color-accent-user-hover: #da4167;
-  --color-accent-bot: #2d3739;
+  --color-accent-bot: #2d3739;      /* Bot message background/accent (kept existing dark) */
   --color-highlight: #fbd36c;
-  --color-text-on-primary: #172d24;
-  --color-text-on-accent-user: #ffffff;
-  --color-text-on-accent-bot: #d4dcdd;
+
   --color-icon: #d4dcdd;
   --color-icon-on-primary: #172d24;
+  --color-icon-system: #a9b9bc;    /* NEW: Icon color for system messages (optional) */
+}
+
+/* Example Usage */
+.message {
+  padding: 10px 15px;
+  margin: 5px 0;
+  border-radius: 8px;
+  border: 1px solid transparent; /* Default no border */
+}
+
+.message--user {
+  background-color: var(--color-accent-user);
+  color: var(--color-text-on-accent-user);
+}
+
+.message--bot {
+  background-color: var(--color-accent-bot);
+  color: var(--color-text-on-accent-bot);
+}
+
+.message--system {
+  background-color: var(--color-bg-system);
+  color: var(--color-text-system);
+  border-color: var(--color-border-system); /* Apply optional border */
+  font-style: italic; /* Optional: further differentiate system messages */
+  text-align: center; /* Optional: center align system messages */
+}
+
+.message--system .icon { /* If you use icons within system messages */
+  fill: var(--color-icon-system);
+  color: var(--color-icon-system); /* For font icons */
 }

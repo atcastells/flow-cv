@@ -1,11 +1,46 @@
-import { useEffect, useRef, useState } from 'react';
-import { Message } from '../types';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useChatStore } from '../../store/chatStore';
+import { Message as UIMessage } from '../types';
+import { Message as StoreMessage } from '../services/aiService';
 
-export const useChat = () => {
-  const [messages, setMessages] = useState<Message[]>([]);
+const mapRoleToSender = (role: StoreMessage['role']): UIMessage['sender'] | null => {
+  switch (role) {
+    case 'user':
+      return 'user';
+    case 'assistant':
+      return 'bot';
+    case 'system':
+      return 'system';
+    case 'tool':
+    default:
+      return null;
+  }
+};
+
+export const useChat = (onSendMessage: (message: string) => void) => {
+  const storeMessages = useChatStore((state) => state.messages);
+  const clearStoreMessages = useChatStore((state) => state.clearMessages);
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+
+  const messages: UIMessage[] = useMemo(() => {
+    return storeMessages
+      .map((msg, index): UIMessage | null => {
+        const sender = mapRoleToSender(msg.role);
+        if (sender && typeof msg.content === 'string') {
+          return {
+            id: Date.now() + index,
+            text: msg.content,
+            sender: sender,
+            suggestions: null,
+            suggestionsUsed: false,
+          };
+        }
+        return null;
+      })
+      .filter((msg): msg is UIMessage => msg !== null);
+  }, [storeMessages]);
 
   useEffect(() => {
     scrollToBottom();
@@ -15,25 +50,15 @@ export const useChat = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const addMessage = (text: string, sender: 'user' | 'bot' | 'system', suggestions: string[] | null = null) => {
-    setMessages((prev) => [
-      ...prev,
-      { id: Date.now(), text, sender, suggestions, suggestionsUsed: false },
-    ]);
-  };
-
   const clearMessages = () => {
-    setMessages([]);
+    clearStoreMessages();
   };
 
   const handleSendMessage = () => {
     const trimmedInput = inputValue.trim();
     if (trimmedInput) {
-      addMessage(trimmedInput, 'user');
+      onSendMessage(trimmedInput);
       setInputValue('');
-      
-      // Here would go any additional processing needed before sending to LM
-      // The actual communication with LM and data storage is now handled externally
     }
   };
 
@@ -51,7 +76,6 @@ export const useChat = () => {
     handleKeyPress,
     messagesEndRef,
     chatContainerRef,
-    addMessage,
     clearMessages
   };
 }; 

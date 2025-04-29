@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MessageCircle, Trash2 } from 'lucide-react';
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Message } from '../types';
 import { ChatInput } from './ChatInput';
 import { ChatMessage } from './ChatMessage';
@@ -11,10 +11,7 @@ interface ChatContainerProps {
   messages: Message[];
   inputValue: string;
   setInputValue: React.Dispatch<React.SetStateAction<string>>;
-  handleSendMessage: () => void;
-  handleKeyPress: (e: React.KeyboardEvent<HTMLInputElement>) => void;
-  messagesEndRef: React.RefObject<HTMLDivElement>;
-  chatContainerRef: React.RefObject<HTMLDivElement>;
+  handleSendMessage: (value: string) => void;
   isLoading?: boolean;
   onClearChat?: () => void;
   onSendPredefinedMessage?: (message: string) => void;
@@ -27,9 +24,6 @@ export const ChatContainer = ({
   inputValue,
   setInputValue,
   handleSendMessage,
-  handleKeyPress,
-  messagesEndRef,
-  chatContainerRef,
   isLoading = false,
   onClearChat,
   onSendPredefinedMessage,
@@ -37,15 +31,31 @@ export const ChatContainer = ({
   handleSkillSelection
 }: ChatContainerProps) => {
   
-  const handleSendPredefinedMessage = (message: string) => {
-    if (onSendPredefinedMessage) {
-      onSendPredefinedMessage(message);
-    } else {
-      setInputValue(message);
-      setTimeout(() => {
-        handleSendMessage();
-      }, 0);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+       event.preventDefault();
+       const trimmedInput = inputValue.trim();
+       if (trimmedInput) {
+           handleSendMessage(trimmedInput);
+       }
     }
+  };
+
+  const handleSuggestionSelect = (suggestion: string) => {
+    console.log('Suggestion selected:', suggestion);
+    setInputValue(suggestion);
+    handleSendMessage(suggestion);
   };
 
   return (
@@ -61,23 +71,17 @@ export const ChatContainer = ({
       </CardHeader>
 
       <CardContent ref={chatContainerRef} className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-4 bg-[var(--color-bg-card)] text-[var(--color-text-primary)] overflow-x-hidden">
-        {messages.length > 0 ? (
-          <>
-            {messages.map((message) => (
-              <ChatMessage key={message.id} message={message} onSkillSelect={handleSkillSelection} />
-            ))}
-            <div ref={messagesEndRef} />
-          </>
-        ) : (
-          <EmptyState onSendPredefinedMessage={handleSendPredefinedMessage} />
-        )}
+        {messages.map((message) => (
+          <ChatMessage onSuggestionSelect={handleSuggestionSelect} key={message.id} message={message} onSkillSelect={handleSkillSelection} />
+        ))}
+        <div ref={messagesEndRef} />
       </CardContent>
 
       <ChatInput
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
         onKeyPress={handleKeyPress}
-        onSend={handleSendMessage}
+        onSend={() => handleSendMessage(inputValue)}
         isLoading={isLoading}
         onClearChat={onClearChat}
         messageCount={messages.length}

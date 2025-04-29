@@ -34,6 +34,13 @@ export type ImageUrlPart = { type: "image_url"; image_url: ImageUrl };
 export type ContentPart = TextPart | ImageUrlPart;
 
 // --- Message Type ---
+
+// Define the structure for UI components within messages
+export interface UIComponentData {
+  type: string; // e.g., 'skillSelector'
+  props: Record<string, unknown>; // Component-specific properties
+}
+
 export interface Message {
   role: 'system' | 'user' | 'assistant' | 'tool';
   // Content can be a simple string, null (for tool calls), or an array for multimodal input
@@ -43,6 +50,8 @@ export interface Message {
   tool_call_id?: string; // Required for tool role messages to match the call ID
   isLocal?: boolean; // Indicates if the message is local (not from the API)
   id?: string; // Optional: Unique ID for the message
+  uiComponent?: UIComponentData; // Optional: Data for rendering a custom UI component
+  suggestions?: string[]; // Optional: Suggestions for the user
 }
 
 // ChatCompletionRequest type
@@ -82,42 +91,66 @@ export interface ChatCompletionResponse {
 
 // --- Service Implementation ---
 
-const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
+const OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1';
+const GROQ_BASE_URL = 'https://api.groq.com/openai/v1';
+const LMStudio_BASE_URL = 'http://127.0.0.1:1234/v1';
 
+const OPENROUTER_API_URL = `${OPENROUTER_BASE_URL}/chat/completions`;
+const GROQ_API_URL = `${GROQ_BASE_URL}/chat/completions`;
+const LMStudio_API_URL = `${LMStudio_BASE_URL}/chat/completions`;
 interface ModelInfo {
   id: string;
   name: string;
   pricing: object; 
 }
 
-export class OpenRouterService {
+export class LLMService {
   private apiKey: string;
   private defaultModel: string;
+  private provider: 'openrouter' | 'groq' | 'lmstudio';
 
-  constructor(apiKey: string, defaultModel = 'google/gemini-flash-1.5') { 
+  private completionUrl: string;
+  private modelsUrl: string;
+
+  constructor(apiKey: string, defaultModel = 'google/gemini-flash-1.5', service = 'lmstudio') { 
     if (!apiKey) {
       throw new Error("OpenRouter API key is required.");
     }
     this.apiKey = apiKey;
     this.defaultModel = defaultModel;
-    console.log(`OpenRouterService initialized with model: ${this.defaultModel}`);
+    this.provider = service as 'openrouter' | 'groq' | 'lmstudio';
+    console.log(`${this.provider}Service initialized with model: ${this.defaultModel}`);
+    this.completionUrl = service === 'openrouter' ? OPENROUTER_API_URL : service === 'groq' ? GROQ_API_URL : LMStudio_API_URL;
+    this.modelsUrl = service === 'openrouter' ? `${OPENROUTER_BASE_URL}/models` : service === 'groq' ? `${GROQ_BASE_URL}/models` : `${LMStudio_BASE_URL}/models`;
   }
 
   async getAvailableModels(): Promise<ModelInfo[]> {
     try {
-      const response = await axios.get<{ data: ModelInfo[] }>('https://openrouter.ai/api/v1/models', {
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json',
-          'HTTP-Referer': typeof window !== 'undefined' ? window.location.origin : 'http://localhost',
-        }
+      // Prepare headers based on the service type
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json', // Often expected, even if not strictly needed for GET
+      };
+
+      // Add auth and other headers only if not using LMStudio for the models endpoint
+      // LM Studio's /v1/models endpoint typically doesn't require these
+      if (this.provider !== 'lmstudio') {
+        headers['Authorization'] = `Bearer ${this.apiKey}`;
+        headers['HTTP-Referer'] = typeof window !== 'undefined' ? window.location.origin : 'http://localhost';
+        headers['X-Title'] = typeof window !== 'undefined' ? window.document.title || 'CV App' : 'CV App (SSR)';
+      }
+      // For LMStudio, we send only Content-Type by default for the models request.
+
+      const response = await axios.get<{ data: ModelInfo[] }>(this.modelsUrl, {
+        headers: headers
       });
-      return response.data.data.filter((model) => { 
-        return model.name.includes('free')
-      });
+
+      // Filter out any potentially null or invalid model entries more robustly
+      return response.data.data.filter(model => model && model.id);
+
     } catch (error) {
-      console.error("Error fetching OpenRouter models:", error);
-      throw error;
+      console.error(`Error fetching models from ${this.provider} (${this.modelsUrl}):`, error);
+      // Consider more specific error handling or returning an empty array
+      throw error; // Re-throw the error for upstream handling
     }
   }
 
@@ -139,10 +172,11 @@ export class OpenRouterService {
 
     try {
       const response = await axios.post<ChatCompletionResponse>(
-        OPENROUTER_API_URL,
+        this.completionUrl,
         {
           ...request, 
           model: modelToUse, 
+          stream: false,
         },
         {
           headers: {

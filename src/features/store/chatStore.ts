@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
+import { persist } from 'zustand/middleware';
 import type { Message } from '../ai/service';
 
 interface ChatState {
@@ -40,9 +40,6 @@ export const useChatStore = create<ChatState>()(
     }),
     {
       name: 'chat-storage',
-      storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({ messages: state.messages }),
-      skipHydration: false,
     }
   )
 );

@@ -1,44 +1,46 @@
-import { useState } from 'react';
-import { CVData, Education, Experience, PersonalInfo } from '../types';
+
+import { Education, Experience } from '../types';
+
+import { useCVStore, PersonalData, Skills } from '../../store/CVStore';
 
 export const useCV = () => {
-  const [cvData, setCvData] = useState<CVData>({
-    personalInfo: {},
-    experience: [],
-    education: [],
-    skills: [],
-  });
+  const { 
+   cvData,
+   setCVSection,
+  } = useCVStore();
 
-  const updatePersonalInfo = (info: Partial<PersonalInfo>) => {
-    setCvData(prev => ({
-      ...prev,
-      personalInfo: {
-        ...prev.personalInfo,
-        ...info
-      }
-    }));
+
+  console.log(cvData);
+
+  const updatePersonalInfo = (info: Partial<PersonalData>) => {
+    setCVSection('PersonalData', info as PersonalData);
   };
 
   const addExperience = (experience: Experience) => {
-    setCvData(prev => ({
-      ...prev,
-      experience: [...prev.experience, experience]
-    }));
+    const currentExperience = Array.isArray(cvData.Experience) 
+      ? cvData.Experience as unknown[] 
+      : [];
+    
+    const updatedExperience = [...currentExperience, experience] as unknown as Experience[];
+    setCVSection('Experience', updatedExperience);
   };
 
   const addEducation = (education: Education) => {
-    setCvData(prev => ({
-      ...prev,
-      education: [...prev.education, education]
-    }));
+    const currentEducation = Array.isArray(cvData.Education) 
+      ? cvData.Education as unknown[] 
+      : [];
+    
+    const updatedEducation = [...currentEducation, education] as unknown as Education[];
+    setCVSection('Education', updatedEducation);
   };
 
   const addSkill = (skill: string) => {
-    if (!cvData.skills.includes(skill)) {
-      setCvData(prev => ({
-        ...prev,
-        skills: [...prev.skills, skill]
-      }));
+    const currentSkills = Array.isArray(cvData.Skills)  
+      ? cvData.Skills as unknown[] 
+      : [];
+
+    if (!currentSkills.includes(skill)) {
+      setCVSection('Skills', [...currentSkills, skill] as unknown as Skills);
     }
   };
 

@@ -1,6 +1,12 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage, devtools } from 'zustand/middleware';
+import { Education } from '../cv/types';
+import { Awards, ContactInfo } from './interfaces';
+import { Certifications, Languages, Publications, VolunteerExperience } from './interfaces';
+import { Experience } from '../cv/types';
+import { Projects } from './interfaces';
 
-// Types for CV data
+// Types
 export interface PersonalData {
   name?: string;
   email?: string;
@@ -12,52 +18,95 @@ export interface PersonalData {
 
 export type Skills = string[];
 
-// For the other CV sections, we'll use a flexible structure as described in the system prompt
-export type CVSectionValue = Record<string, string | string[] | number> | string[];
 
 export interface CVData {
-  Profile?: CVSectionValue;
-  Experience?: CVSectionValue;
-  Education?: CVSectionValue;
-  Projects?: CVSectionValue;
-  Certifications?: CVSectionValue;
-  Languages?: CVSectionValue;
-  Publications?: CVSectionValue;
-  VolunteerExperience?: CVSectionValue;
-  Awards?: CVSectionValue;
-  ContactInfo?: CVSectionValue;
+  PersonalData?: PersonalData;
+  Skills?: Skills;
+  Profile?: string; // Optional: summary or objective
+  Experience?: Experience;
+  Education?: Education;
+  Projects?: Projects;
+  Certifications?: Certifications;
+  Languages?: Languages;
+  Publications?: Publications;
+  VolunteerExperience?: VolunteerExperience;
+  Awards?: Awards;
+  ContactInfo?: ContactInfo;
 }
 
-// Store interface
-interface ProfileStore {
-  // State
-  personalData: PersonalData;
-  skills: Skills;
+// Store Interface
+interface CVStore {
   cvData: CVData;
 
   // Actions
-  setPersonalData: (data: PersonalData) => void;
-  setSkills: (skills: Skills) => void;
-  setCVSection: <K extends keyof CVData>(section: K, data: CVData[K]) => void;
+  setCVSection: <K extends keyof CVData>(section: K, data: Partial<CVData[K]> | CVData[K]) => void;
+  addSkill: (skill: string) => void;
+  removeSkill: (skill: string) => void;
+  resetCV: () => void;
+
+  // Computed
+  hasMinimumCVData: () => boolean;
 }
 
-export const useCVStore = create<ProfileStore>((set) => ({
-  personalData: {},
-  skills: [],
-  cvData: {},
+// Store
+export const useCVStore = create<CVStore>()(
+  devtools(
+    persist(
+      (set, get) => ({
+        cvData: {},
 
-  setPersonalData: (data) => set((state) => ({
-    personalData: { ...state.personalData, ...data },
-  })),
-  
-  setSkills: (skills) => set(() => ({
-    skills,
-  })),
-  
-  setCVSection: (section, data) => set((state) => ({
-    cvData: {
-      ...state.cvData,
-      [section]: data,
-    },
-  })),
-}));
+        setCVSection: (section, data) =>
+          set((state) => {
+            const current = state.cvData[section];
+            const isMergeable = typeof current === 'object' && !Array.isArray(current);
+            return {
+              cvData: {
+                ...state.cvData,
+                [section]: isMergeable
+                  ? { ...(current as object), ...(data as object) }
+                  : data,
+              },
+            };
+          }),
+
+        addSkill: (skill) =>
+          set((state) => {
+            const currentSkills = state.cvData.Skills ?? [];
+            return {
+              cvData: {
+                ...state.cvData,
+                Skills: currentSkills.includes(skill)
+                  ? currentSkills
+                  : [...currentSkills, skill],
+              },
+            };
+          }),
+
+        removeSkill: (skill) =>
+          set((state) => {
+            const currentSkills = state.cvData.Skills ?? [];
+            return {
+              cvData: {
+                ...state.cvData,
+                Skills: currentSkills.filter((s) => s !== skill),
+              },
+            };
+          }),
+
+        resetCV: () => set(() => ({ cvData: {} })),
+
+        hasMinimumCVData: () => {
+          const personal = get().cvData.PersonalData;
+          return Boolean(personal?.name && personal?.email);
+        },
+      }),
+      {
+        name: 'cv-storage',
+        storage:
+          typeof window !== 'undefined'
+            ? createJSONStorage(() => localStorage)
+            : undefined,
+      }
+    )
+  )
+);

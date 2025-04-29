@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+memory-bank
+
+# Ignore all markdown files except README.md
+*.md
+!README.md

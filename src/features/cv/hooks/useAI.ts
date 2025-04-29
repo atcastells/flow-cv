@@ -1,48 +1,52 @@
 import { useToast } from '@/hooks/use-toast';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useChatStore } from '../../store/chatStore';
 import { useSystemPrompt } from '../prompts/useSystemPrompt';
 import type { ChatCompletionRequest, ChatCompletionResponseMessage, Message, ToolCall } from '../services/aiService';
-import { OpenRouterService } from '../services/aiService';
-import { saveCVInfoTool } from '../tools/saveCVInfoTool';
-import { renderSkillSelectorTool } from '../tools/renderSkillSelectorTool';
+import { LLMService } from '../services/aiService';
+import { useToolHandler } from './useToolHandler';
+import { parseSuggestionsFromContent } from '../components/ParseSuggestionsFromContent';
+import { sanitizeMessage } from '../utils/sanitize';
 
-// Define available tools
-const availableTools: { [key: string]: (args: unknown) => Promise<object> } = {  
-  save_cv_info: saveCVInfoTool as (args: unknown) => Promise<object>,
-  render_skill_selector: renderSkillSelectorTool as (args: unknown) => Promise<object>,
-};
+// Define history limit as a constant
+const HISTORY_LIMIT = 20;
 
 interface UseAIOptions {
-  addMessage: (
-    text: string, 
-    sender: 'user' | 'bot' | 'system', 
-    suggestions?: string[] | null, 
-    uiComponents?: { type: string; props: any }[]
-  ) => void;
   apiKey: string;
   model?: string;
 }
 
-export function useAI({ addMessage, apiKey, model }: UseAIOptions) {
+export function useAI({ apiKey, model }: UseAIOptions) {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const storeMessages = useChatStore((state) => state.messages);
   const addStoreMessage = useChatStore((state) => state.addMessage);
   const addStoreMessages = useChatStore((state) => state.addMessages);
-  const { systemPromptString, toolDefinitions } = useSystemPrompt();
-  
-  // Initialize the OpenRouter service
+  const { systemPromptString, toolDefinitions } = useSystemPrompt({ mode: 'json' });
+  const [preventAIGreeting, setPreventAIGreeting] = useState(false);
+
+
+  useEffect(() => {
+    if (storeMessages.length > 0) {
+      setPreventAIGreeting(true);
+    } else {
+      setPreventAIGreeting(false);
+    }
+  }, [storeMessages]);
+
+
   const service = useMemo(() => {
     const effectiveModel = model || 'google/gemini-flash-1.5';
     if (!apiKey || !effectiveModel) return null;
     console.log(`Initializing OpenRouterService with model: ${effectiveModel}`);
-    return new OpenRouterService(apiKey, effectiveModel);
+    return new LLMService(apiKey, effectiveModel);
   }, [apiKey, model]);
   
   const processChatTurn = useCallback(async (messagesForApi: Message[]) => {
     if (!service || !systemPromptString) {
-      toast({ title: 'Error', description: 'Chat service not initialized.', variant: 'destructive' });
+      console.log("Chat service or system prompt not ready, aborting processChatTurn.");
+      toast({ title: 'Error', description: 'Chat service not ready.', variant: 'destructive' });
+      // Ensure loading is false if we abort early
       setIsLoading(false);
       return;
     }
@@ -53,8 +57,7 @@ export function useAI({ addMessage, apiKey, model }: UseAIOptions) {
     try {
       const request: ChatCompletionRequest = {
         messages: [
-          { role: 'system', content: systemPromptString },
-          ...messagesForApi
+          ...messagesForApi.map(({id, ...rest}) => rest)
         ],
         ...(toolDefinitions && toolDefinitions.length > 0 && {
           tools: toolDefinitions,
@@ -68,25 +71,41 @@ export function useAI({ addMessage, apiKey, model }: UseAIOptions) {
         throw new Error('Invalid API response: missing message structure');
       }
 
-      const assistantMessage = response.choices[0].message as ChatCompletionResponseMessage;
-      if (!assistantMessage.role) assistantMessage.role = 'assistant';
+      const assistantApiResponse = response.choices[0].message as ChatCompletionResponseMessage;
+      if (!assistantApiResponse.role) assistantApiResponse.role = 'assistant';
 
-      // Add the assistant's message to the store
-      addStoreMessage(assistantMessage);
-      
-      // Track if we need to render a skill selector with this message
-      let uiComponents: { type: string; props: any }[] = [];
-      
-      // Process tool calls to identify UI components to render
-      if (assistantMessage.tool_calls && assistantMessage.tool_calls.length > 0) {
-        console.log("Handling tool calls:", assistantMessage.tool_calls);
-        
-        // Check if any tool call is for the skill selector
-        for (const toolCall of assistantMessage.tool_calls) {
+      console.log("Assistant API response:", assistantApiResponse);
+
+      // Sanitize the message to remove artifacts
+      const sanitizedResponse = sanitizeMessage(assistantApiResponse);
+      console.log("Sanitized response:", sanitizedResponse);
+
+      // Parse the content for suggestions
+      const { cleanContent, suggestions } = parseSuggestionsFromContent(sanitizedResponse);
+
+      console.log("Suggestions:", suggestions);
+
+
+      // Prepare the message object for the store, explicitly defining uiComponent
+      let messageForStore: Message = {
+        role: assistantApiResponse.role,
+        content: cleanContent, // Use content without tags
+        suggestions: suggestions.length > 0 ? suggestions : undefined, // Store extracted suggestions
+        tool_calls: assistantApiResponse.tool_calls, // Handle other tools if needed
+        id: response.id || assistantApiResponse.id,
+        uiComponent: undefined, // Reset or handle based on other logic
+      };
+
+      // Process tool calls to potentially add uiComponent
+      if (assistantApiResponse.tool_calls && assistantApiResponse.tool_calls.length > 0) {
+        console.log("Handling tool calls:", assistantApiResponse.tool_calls);
+        let uiComponentData: { type: string; props: any } | undefined = undefined;
+
+        for (const toolCall of assistantApiResponse.tool_calls) {
           if (toolCall.function.name === 'render_skill_selector') {
             try {
               const args = JSON.parse(toolCall.function.arguments);
-              uiComponents.push({
+              uiComponentData = {
                 type: 'skillSelector',
                 props: {
                   category: args.skillCategory || 'all',
@@ -94,82 +113,42 @@ export function useAI({ addMessage, apiKey, model }: UseAIOptions) {
                   industryContext: args.industryContext || '',
                   toolCallId: toolCall.id // Pass the tool call ID for callback reference
                 }
-              });
+              };
+              break; // Assume only one UI component per message
             } catch (e) {
               console.error("Error parsing skill selector arguments:", e);
             }
           }
         }
-
-        // Add the message to the UI with any UI components
-        if (typeof assistantMessage.content === 'string') {
-          addMessage(assistantMessage.content, 'bot', null, uiComponents.length > 0 ? uiComponents : undefined);
+        // Assign uiComponentData if it was generated
+        if (uiComponentData) {
+            messageForStore.uiComponent = uiComponentData;
+            console.log("Assigned UI component to message:", uiComponentData);
         }
 
-        const toolResultsPromises = assistantMessage.tool_calls.map(async (toolCall: ToolCall) => {
-          const functionName = toolCall.function.name;
-          const functionToCall = availableTools[functionName];
-          let functionResultContent: string;
-          let functionArguments = {};
+        // Add the potentially enhanced message to the store *before* tool execution
+        addStoreMessage(messageForStore);
+        console.log("Added assistant message to store (before tool execution):", messageForStore);
 
-          try {
-            if (toolCall.function.arguments) {
-              functionArguments = JSON.parse(toolCall.function.arguments);
-            }
-            if (functionToCall) {
-              let result: object;
-              if (functionName === 'save_cv_info') {
-                result = await saveCVInfoTool(functionArguments as Parameters<typeof saveCVInfoTool>[0]);
-              } else if (functionName === 'render_skill_selector') {
-                result = await renderSkillSelectorTool(functionArguments as Parameters<typeof renderSkillSelectorTool>[0]);
-              } else {
-                result = await functionToCall(functionArguments as Record<string, unknown>);
-              }
-              functionResultContent = JSON.stringify(result);
-            } else {
-              throw new Error(`Unknown tool function: ${functionName}`);
-            }
-          } catch (toolError) {
-            const errorMessage = toolError instanceof Error ? toolError.message : 'Unknown tool execution error';
-            console.error(`Error executing tool ${functionName}:`, errorMessage);
-            toast({
-              title: 'Tool Error',
-              description: `Failed to execute tool ${functionName}: ${errorMessage}`,
-              variant: 'destructive'
-            });
-            functionResultContent = JSON.stringify({ error: errorMessage });
-          }
+        // --- Tool Execution Logic ---
+        // Hand off tool execution to the useToolHandler hook
+        console.log("Handing off tool calls to useToolHandler:", assistantApiResponse.tool_calls);
+        // No need to await if we want UI to update immediately.
+        // executeTools internally handles the next call to processChatTurn if needed.
+        executeTools(assistantApiResponse.tool_calls);
+        // isLoading remains true, executeTools or the subsequent processChatTurn will set it false.
+        // --- End Tool Execution ---
 
-          return {
-            role: 'tool',
-            tool_call_id: toolCall.id,
-            content: functionResultContent,
-          } as Message;
-        });
-
-        const resolvedToolResults = (await Promise.all(toolResultsPromises)).filter(result => result !== null) as Message[];
-
-        if (resolvedToolResults.length > 0) {
-          console.log("Adding tool results to messages:", resolvedToolResults);
-          addStoreMessages(resolvedToolResults);
-          const currentMessages = useChatStore.getState().messages;
-          await processChatTurn(currentMessages.slice(-20));
-        } else {
-          console.error("No valid tool results obtained.");
-          toast({ title: 'Error', description: 'Failed to process tool requests.', variant: 'destructive'});
-          setIsLoading(false);
-        }
       }
-      else if (assistantMessage.content !== null || response.choices[0].finish_reason === 'stop') {
-        // No tool calls, just show the message
-        if (typeof assistantMessage.content === 'string') {
-          addMessage(assistantMessage.content, 'bot');
-        }
-        console.log("Final assistant response received (or stop reason).");
-        setIsLoading(false);
+      else if (assistantApiResponse.content !== null || response.choices[0].finish_reason === 'stop') {
+        // No tool calls, just add the plain message (already has uiComponent: undefined) to the store
+        // If message has content, add it. If no content but finished, still add (e.g. empty message is valid)
+        addStoreMessage(messageForStore);
+        console.log("Final assistant response added (or stop reason). No tool calls initiated.", messageForStore);
+        setIsLoading(false); // Turn complete
       }
       else {
-        console.warn("Received unexpected assistant message format/finish reason:", assistantMessage, response.choices[0].finish_reason);
+        console.warn("Received unexpected assistant message format/finish reason:", assistantApiResponse, response.choices[0].finish_reason);
         toast({ title: 'Info', description: 'Assistant provided an empty or unexpected response.', variant: 'default' });
         setIsLoading(false);
       }
@@ -180,64 +159,94 @@ export function useAI({ addMessage, apiKey, model }: UseAIOptions) {
       toast({ title: 'Chat Error', description: `Failed to get response: ${errorMessage}`, variant: 'destructive' });
       setIsLoading(false);
     }
-  }, [service, systemPromptString, toolDefinitions, toast, isLoading, addStoreMessage, addStoreMessages, addMessage]);
+  }, [service, systemPromptString, toolDefinitions, toast, isLoading, addStoreMessage, addStoreMessages]);
   
+  // Instantiate the tool handler hook *after* processChatTurn is defined, passing the callback and setIsLoading
+   const {executeTools} = useToolHandler({
+        processNextTurn: processChatTurn,
+        setIsLoading: setIsLoading, // Pass setIsLoading
+      });
+
+  // Effect to trigger initial AI greeting if chat is empty
+  useEffect(() => {
+    console.log("Initial Greeting useEffect check.");
+    console.log("storeMessages length:", storeMessages.length);
+    console.log("preventAIGreeting:", preventAIGreeting);
+    console.log("service ready:", !!service);
+    console.log("systemPromptString ready:", !!systemPromptString);
+
+    // Check if the service is ready, the prompt is loaded, there are no messages,
+    // and greeting is not prevented
+    // Also ensure processChatTurn is stable/available (though it should be by this point)
+    if (storeMessages.length === 0 && !preventAIGreeting && service && systemPromptString && processChatTurn) {
+      console.log("Chat is empty and ready, triggering initial AI greeting.");
+      // Call processChatTurn with an empty history to get the initial message
+      processChatTurn([
+        {
+          role: 'user',
+          content: "Hola"
+        }
+      ]);
+      // Prevent subsequent automatic greetings
+      setPreventAIGreeting(true);
+    }
+    // Dependencies: service, systemPromptString, message store, the processing function, and greeting prevention flag
+  }, [storeMessages, processChatTurn, preventAIGreeting, service, systemPromptString]);
+
   const sendUserMessageToAI = useCallback(
     (userMessage: string) => {
-      // First, display the message in the UI
-      addMessage(userMessage, 'user');
-      
-      // Then add it to the chat store for AI processing
+      // Add user message to the chat store
       const message: Message = {
         role: 'user',
         content: userMessage
+        // Let ensureMessageId in store handle ID generation
       };
       addStoreMessage(message);
-
       console.log("Sending user message to AI:", userMessage);
-      
+
       // Process the message with the AI
       const currentMessages = useChatStore.getState().messages;
-      const limitedHistory = currentMessages.slice(-20);
+      const limitedHistory = currentMessages.slice(-HISTORY_LIMIT);
+      // Use the single processChatTurn function
       processChatTurn(limitedHistory);
     },
-    [addMessage, addStoreMessage, processChatTurn]
+    // Updated dependencies
+    [addStoreMessage, processChatTurn]
   );
   
   // Function to handle user selecting skills from the skill selector
   const handleSkillSelection = useCallback((skills: string[], toolCallId: string) => {
-    // Add the selected skills as a user message
-    const skillsMessage = `I've selected the following skills: ${skills.join(', ')}`;
-    addMessage(skillsMessage, 'user');
-    
-    // Add to chat store
-    const message: Message = {
+    const skillsMessageContent = `I've selected the following skills: ${skills.join(', ')}`;
+
+    // Add selected skills as a user message to the store
+    const userSkillsMessage: Message = {
       role: 'user',
-      content: skillsMessage
+      content: skillsMessageContent,
     };
-    addStoreMessage(message);
-    
-    // Process with AI
+    addStoreMessage(userSkillsMessage);
+    console.log("Added user skill selection message to store:", userSkillsMessage);
+
+    // Create the tool result message responding to the original tool call
+    const toolResponseMessage: Message = {
+      role: 'tool',
+      tool_call_id: toolCallId,
+      content: JSON.stringify({ selected_skills: skills }) // Send back the selected skills as the result
+    };
+    addStoreMessage(toolResponseMessage);
+    console.log("Added tool response message for skill selection:", toolResponseMessage);
+
+    // Process the next turn with the AI, including the new user message and the tool result
     const currentMessages = useChatStore.getState().messages;
-    const limitedHistory = currentMessages.slice(-20);
+    const limitedHistory = currentMessages.slice(-HISTORY_LIMIT);
+     // Use the single processChatTurn function
     processChatTurn(limitedHistory);
-  }, [addMessage, addStoreMessage, processChatTurn]);
-  
-  // Function to sync chat store messages to UI
-  const syncMessagesToUI = useCallback(() => {
-    // Get messages from store and convert them to the format expected by the CV chat
-    storeMessages.forEach(message => {
-      if (message.role === 'assistant' && typeof message.content === 'string') {
-        // We don't have access to tool calls in this context, so we can't regenerate UI components
-        addMessage(message.content, 'bot');
-      }
-    });
-  }, [storeMessages, addMessage]);
+  },
+  // Updated dependencies
+  [addStoreMessage, processChatTurn, toast]);
 
   return {
+    isLoading,
     sendUserMessageToAI,
     handleSkillSelection,
-    syncMessagesToUI,
-    isLoading
   };
 }

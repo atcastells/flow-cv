@@ -20,13 +20,6 @@ export interface Education {
   dates?: string;
 }
 
-export interface CVData {
-  personalInfo: PersonalInfo;
-  experience: Experience[];
-  education: Education[];
-  skills: string[];
-}
-
 export interface Message {
   id: number;
   text: string;
@@ -34,6 +27,7 @@ export interface Message {
   suggestions: string[] | null;
   suggestionsUsed: boolean;
   uiComponents?: { type: string; props: any }[];
+  toolCalls?: { id: string; type: string; function: { name: string; arguments: any } }[];
 }
 
 export interface SectionTitleProps {

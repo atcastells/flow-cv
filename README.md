@@ -1,69 +1,92 @@
-# Welcome to your Lovable project
+# CV Interaction Flow
 
-## Project info
+This project implements an interactive CV (Curriculum Vitae) builder using a conversational chat interface. Users can interact with an AI assistant to provide their personal information, skills, experience, etc., and see a live preview of their CV updated in real-time.
 
-**URL**: https://lovable.dev/projects/c2aaa1df-b3f6-4520-b2b0-850734ab6ec6
+## Features
 
-## How can I edit this code?
+*   **Conversational Interface:** Build your CV by chatting with an AI assistant.
+*   **Integrated Live Preview:** See your CV update instantly as you provide information.
+*   **AI-Powered Data Handling:** Uses AI tools to parse and save profile data (personal info, skills) to the application state.
+*   **Persistent Chat:** Chat history is saved using `localStorage`, allowing you to resume your session later.
+*   **Responsive Design:** The interface adapts to different screen sizes, including mobile devices.
+*   **Component-Based:** Built with React, TypeScript, and Shadcn UI components.
+*   **State Management:** Uses Zustand for managing global application state (profile data, chat messages, skills).
 
-There are several ways of editing your application.
+## Getting Started
 
-**Use Lovable**
+### Prerequisites
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/c2aaa1df-b3f6-4520-b2b0-850734ab6ec6) and start prompting.
+*   Node.js (or Bun)
+*   npm (or Bun package manager)
 
-Changes made via Lovable will be committed automatically to this repo.
+### Installation
 
-**Use your preferred IDE**
+1.  Clone the repository:
+    ```bash
+    git clone <repository-url>
+    cd cv-interaction-flow
+    ```
+2.  Install dependencies:
+    ```bash
+    npm install
+    # or if using Bun
+    # bun install
+    ```
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Configuration
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+This project requires API keys for the AI models it uses.
 
-Follow these steps:
+1.  Create a `.env` file in the root directory of the project.
+2.  Add the following environment variables to the `.env` file, replacing `<your_api_key>` with your actual keys:
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+    ```env
+    VITE_OPENROUTER_API_KEY=<your_openrouter_api_key>
+    VITE_GROQ_API_KEY=<your_groq_api_key>
+    ```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+    *   `VITE_OPENROUTER_API_KEY`: Your API key for accessing models via OpenRouter.
+    *   `VITE_GROQ_API_KEY`: Your API key for accessing models via Groq.
 
-# Step 3: Install the necessary dependencies.
-npm i
+### Running the Application
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+*   **Development Mode:** Start the development server with hot reloading.
+    ```bash
+    npm run dev
+    # or
+    # bun run dev
+    ```
+    The application will typically be available at `http://localhost:5173`.
 
-**Edit a file directly in GitHub**
+*   **Build for Production:** Create an optimized production build.
+    ```bash
+    npm run build
+    # or
+    # bun run build
+    ```
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+*   **Preview Production Build:** Serve the production build locally.
+    ```bash
+    npm run preview
+    # or
+    # bun run preview
+    ```
 
-**Use GitHub Codespaces**
+*   **Linting:** Check the code for potential errors and style issues.
+    ```bash
+    npm run lint
+    # or
+    # bun run lint
+    ```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Project Structure (Overview)
 
-## What technologies are used for this project?
-
-This project is built with .
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/c2aaa1df-b3f6-4520-b2b0-850734ab6ec6) and click on Share -> Publish.
-
-## I want to use a custom domain - is that possible?
-
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+*   `src/`: Main application source code.
+    *   `components/`: Reusable UI components (built with Shadcn UI).
+    *   `features/`: Core application logic, including AI interaction, state management (Zustand stores), hooks, and tools.
+    *   `pages/`: Top-level page components.
+    *   `lib/`: Utility functions and configurations.
+    *   `hooks/`: Custom React hooks.
+*   `memory-bank/`: Contains context files tracking project details, decisions, and progress.
+*   `public/`: Static assets.
+*   `*.md`: Planning documents for specific features or refactors. 
